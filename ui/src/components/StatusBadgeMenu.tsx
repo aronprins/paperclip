@@ -12,7 +12,7 @@ import {
 
 interface StatusBadgeMenuProps {
   agentId: string;
-  status: string;
+  status: AgentStatus;
   companyId: string;
 }
 

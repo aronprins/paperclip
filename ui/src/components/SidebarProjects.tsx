@@ -162,7 +162,7 @@ function SortableProjectItem({
 
 export function SidebarProjects() {
   const [open, setOpen] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(true);
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { openNewProject } = useDialog();
   const { isMobile, setSidebarOpen } = useSidebar();

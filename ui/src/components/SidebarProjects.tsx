@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { NavLink, useLocation } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Eye, ListFilter, Plus, ToggleLeft, ToggleRight } from "lucide-react";
+import { Check, ChevronRight, Eye, Plus, ToggleLeft, ToggleRight } from "lucide-react";
 import {
   DndContext,
   MouseSensor,
@@ -33,12 +33,48 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Goal, Project } from "@paperclipai/shared";
+import type { Project } from "@paperclipai/shared";
 
 const COMPLETED_STATUSES = ["completed", "cancelled"];
 const GOAL_DONE_STATUSES = ["achieved", "cancelled"];
 
 type ProjectSidebarSlot = ReturnType<typeof usePluginSlots>["slots"][number];
+
+function ProjectItem({
+  activeProjectRef,
+  isMobile,
+  project,
+  setSidebarOpen,
+}: {
+  activeProjectRef: string | null;
+  isMobile: boolean;
+  project: Project;
+  setSidebarOpen: (open: boolean) => void;
+}) {
+  const routeRef = projectRouteRef(project);
+
+  return (
+    <NavLink
+      to={`/projects/${routeRef}/issues`}
+      onClick={() => {
+        if (isMobile) setSidebarOpen(false);
+      }}
+      className={cn(
+        "flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium transition-colors",
+        activeProjectRef === routeRef || activeProjectRef === project.id
+          ? "bg-accent text-foreground"
+          : "text-foreground/80 hover:bg-accent/50 hover:text-foreground",
+      )}
+    >
+      <span className="shrink-0 h-3.5 w-3.5 rounded-sm flex items-center justify-center bg-muted-foreground/20">
+        <Check className="h-2.5 w-2.5 text-muted-foreground" />
+      </span>
+      <span className={cn("flex-1 truncate", "text-muted-foreground")}>
+        {project.name}
+      </span>
+    </NavLink>
+  );
+}
 
 function SortableProjectItem({
   activeProjectRef,
@@ -270,6 +306,7 @@ export function SidebarProjects() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowCompleted((prev) => !prev);
@@ -332,14 +369,11 @@ export function SidebarProjects() {
         {showCompleted && completedProjects.length > 0 && (
           <div className="flex flex-col gap-0.5 mt-0.5">
             {completedProjects.map((project: Project) => (
-              <SortableProjectItem
+              <ProjectItem
                 key={project.id}
                 activeProjectRef={activeProjectRef}
-                companyId={selectedCompanyId}
-                companyPrefix={selectedCompany?.issuePrefix ?? null}
                 isMobile={isMobile}
                 project={project}
-                projectSidebarSlots={projectSidebarSlots}
                 setSidebarOpen={setSidebarOpen}
               />
             ))}

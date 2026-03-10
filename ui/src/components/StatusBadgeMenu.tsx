@@ -1,10 +1,6 @@
-import { useCallback } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { Pause, Play, Trash2 } from "lucide-react";
 import { AGENT_ACTIONABLE_STATUSES, type AgentStatus } from "@paperclipai/shared";
-import { agentsApi } from "../api/agents";
-import { useToast } from "../context/ToastContext";
-import { queryKeys } from "../lib/queryKeys";
+import { Pause, Play, Trash2 } from "lucide-react";
+import { useAgentStatusMutations } from "../hooks/useAgentStatusMutations";
 import { StatusBadge } from "./StatusBadge";
 import {
   DropdownMenu,
@@ -21,38 +17,10 @@ interface StatusBadgeMenuProps {
 }
 
 export function StatusBadgeMenu({ agentId, status, companyId }: StatusBadgeMenuProps) {
-  const queryClient = useQueryClient();
-  const { pushToast } = useToast();
-
-  const invalidate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(companyId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.org(companyId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.agents.detail(agentId) });
-  }, [queryClient, companyId, agentId]);
-
-  const onError = useCallback((err: Error) => {
-    pushToast({ title: err.message, tone: "error" });
-  }, [pushToast]);
-
-  const pauseMut = useMutation({
-    mutationFn: () => agentsApi.pause(agentId, companyId),
-    onSuccess: invalidate,
-    onError,
+  const { pauseAgent, resumeAgent, terminateAgent, busy } = useAgentStatusMutations({
+    companyId,
+    agentId,
   });
-
-  const resumeMut = useMutation({
-    mutationFn: () => agentsApi.resume(agentId, companyId),
-    onSuccess: invalidate,
-    onError,
-  });
-
-  const terminateMut = useMutation({
-    mutationFn: () => agentsApi.terminate(agentId, companyId),
-    onSuccess: invalidate,
-    onError,
-  });
-
-  const busy = pauseMut.isPending || resumeMut.isPending || terminateMut.isPending;
 
   if (!AGENT_ACTIONABLE_STATUSES.has(status)) {
     return <StatusBadge status={status} />;
@@ -70,19 +38,19 @@ export function StatusBadgeMenu({ agentId, status, companyId }: StatusBadgeMenuP
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         {canPause && (
-          <DropdownMenuItem onClick={() => pauseMut.mutate()} disabled={busy}>
+          <DropdownMenuItem onClick={() => pauseAgent.mutate(agentId)} disabled={busy}>
             <Pause className="h-3.5 w-3.5" />
             Pause
           </DropdownMenuItem>
         )}
         {canResume && (
-          <DropdownMenuItem onClick={() => resumeMut.mutate()} disabled={busy}>
+          <DropdownMenuItem onClick={() => resumeAgent.mutate(agentId)} disabled={busy}>
             <Play className="h-3.5 w-3.5" />
             Resume
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => terminateMut.mutate()} disabled={busy}>
+        <DropdownMenuItem variant="destructive" onClick={() => terminateAgent.mutate(agentId)} disabled={busy}>
           <Trash2 className="h-3.5 w-3.5" />
           Terminate
         </DropdownMenuItem>

@@ -137,8 +137,11 @@ export function Agents() {
 
   const bulkToggle = useMutation({
     mutationFn: async (action: "pause" | "resume") => {
+      const targets = toggleableAgents.filter((a) =>
+        action === "pause" ? a.status !== "paused" : a.status === "paused",
+      );
       const results = await Promise.allSettled(
-        toggleableAgents.map((a) =>
+        targets.map((a) =>
           action === "pause"
             ? agentsApi.pause(a.id, selectedCompanyId!)
             : agentsApi.resume(a.id, selectedCompanyId!),
@@ -275,14 +278,14 @@ export function Agents() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={() => bulkToggle.mutate("pause")}
-                    disabled={allActive ? false : allPaused}
+                    disabled={allPaused}
                   >
                     <Pause className="h-3.5 w-3.5" />
                     Pause All
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => bulkToggle.mutate("resume")}
-                    disabled={allPaused ? false : allActive}
+                    disabled={allActive}
                   >
                     <Play className="h-3.5 w-3.5" />
                     Resume All

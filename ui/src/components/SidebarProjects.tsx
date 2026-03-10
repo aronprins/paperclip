@@ -69,7 +69,7 @@ function ProjectItem({
       <span className="shrink-0 h-3.5 w-3.5 rounded-sm flex items-center justify-center bg-muted-foreground/20">
         <Check className="h-2.5 w-2.5 text-muted-foreground" />
       </span>
-      <span className={cn("flex-1 truncate", "text-muted-foreground")}>
+      <span className="flex-1 truncate text-muted-foreground">
         {project.name}
       </span>
     </NavLink>
@@ -129,19 +129,11 @@ function SortableProjectItem({
               : "text-foreground/80 hover:bg-accent/50 hover:text-foreground",
           )}
         >
-          {COMPLETED_STATUSES.includes(project.status) ? (
-            <span className="shrink-0 h-3.5 w-3.5 rounded-sm flex items-center justify-center bg-muted-foreground/20">
-              <Check className="h-2.5 w-2.5 text-muted-foreground" />
-            </span>
-          ) : (
-            <span
-              className="shrink-0 h-3.5 w-3.5 rounded-sm"
-              style={{ backgroundColor: project.color ?? "#6366f1" }}
-            />
-          )}
-          <span className={cn("flex-1 truncate", COMPLETED_STATUSES.includes(project.status) && "text-muted-foreground")}>
-            {project.name}
-          </span>
+          <span
+            className="shrink-0 h-3.5 w-3.5 rounded-sm"
+            style={{ backgroundColor: project.color ?? "#6366f1" }}
+          />
+          <span className="flex-1 truncate">{project.name}</span>
           {project.pauseReason === "budget" ? <BudgetSidebarMarker title="Project paused by budget" /> : null}
         </NavLink>
         {projectSidebarSlots.length > 0 && (

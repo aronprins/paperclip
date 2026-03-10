@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { projectsApi } from "../api/projects";
 import { useCompany } from "../context/CompanyContext";
@@ -12,6 +12,7 @@ import { PageSkeleton } from "../components/PageSkeleton";
 import { formatDate, projectUrl } from "../lib/utils";
 import { Button } from "@/components/ui/button";
 import { Hexagon, Plus } from "lucide-react";
+import { PROJECT_STATUSES, type ProjectStatus } from "@paperclipai/shared";
 
 export function Projects() {
   const { selectedCompanyId } = useCompany();
@@ -21,6 +22,8 @@ export function Projects() {
   useEffect(() => {
     setBreadcrumbs([{ label: "Projects" }]);
   }, [setBreadcrumbs]);
+
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
 
   const { data: allProjects, isLoading, error } = useQuery({
     queryKey: queryKeys.projects.list(selectedCompanyId!),
@@ -32,6 +35,12 @@ export function Projects() {
     [allProjects],
   );
 
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    if (statusFilter === "all") return projects;
+    return projects.filter((p) => p.status === statusFilter);
+  }, [projects, statusFilter]);
+
   if (!selectedCompanyId) {
     return <EmptyState icon={Hexagon} message="Select a company to view projects." />;
   }
@@ -42,7 +51,26 @@ export function Projects() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={statusFilter === "all" ? "secondary" : "ghost"}
+            onClick={() => setStatusFilter("all")}
+          >
+            All
+          </Button>
+          {PROJECT_STATUSES.map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={statusFilter === s ? "secondary" : "ghost"}
+              onClick={() => setStatusFilter(s)}
+            >
+              {s.replace("_", " ")}
+            </Button>
+          ))}
+        </div>
         <Button size="sm" variant="outline" onClick={openNewProject}>
           <Plus className="h-4 w-4 mr-1" />
           Add Project
@@ -60,9 +88,16 @@ export function Projects() {
         />
       )}
 
-      {projects.length > 0 && (
+      {projects && projects.length > 0 && filteredProjects.length === 0 && (
+        <EmptyState
+          icon={Hexagon}
+          message={`No ${statusFilter.replace("_", " ")} projects.`}
+        />
+      )}
+
+      {filteredProjects.length > 0 && (
         <div className="border border-border">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <EntityRow
               key={project.id}
               title={project.name}

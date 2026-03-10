@@ -1,6 +1,7 @@
+import { useCallback } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Pause, Play, Trash2 } from "lucide-react";
-import { AGENT_ACTIONABLE_STATUSES } from "@paperclipai/shared";
+import { AGENT_ACTIONABLE_STATUSES, type AgentStatus } from "@paperclipai/shared";
 import { agentsApi } from "../api/agents";
 import { useToast } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
@@ -15,7 +16,7 @@ import {
 
 interface StatusBadgeMenuProps {
   agentId: string;
-  status: string;
+  status: AgentStatus;
   companyId: string;
 }
 
@@ -23,15 +24,15 @@ export function StatusBadgeMenu({ agentId, status, companyId }: StatusBadgeMenuP
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
 
-  const invalidate = () => {
+  const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(companyId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.org(companyId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.agents.detail(agentId) });
-  };
+  }, [queryClient, companyId, agentId]);
 
-  const onError = (err: Error) => {
+  const onError = useCallback((err: Error) => {
     pushToast({ title: err.message, tone: "error" });
-  };
+  }, [pushToast]);
 
   const pauseMut = useMutation({
     mutationFn: () => agentsApi.pause(agentId, companyId),
@@ -53,7 +54,7 @@ export function StatusBadgeMenu({ agentId, status, companyId }: StatusBadgeMenuP
 
   const busy = pauseMut.isPending || resumeMut.isPending || terminateMut.isPending;
 
-  if (!AGENT_ACTIONABLE_STATUSES.has(status as any)) {
+  if (!AGENT_ACTIONABLE_STATUSES.has(status)) {
     return <StatusBadge status={status} />;
   }
 

@@ -67,7 +67,7 @@ export function Projects() {
               variant={statusFilter === s ? "secondary" : "ghost"}
               onClick={() => setStatusFilter(s)}
             >
-              {s.replace("_", " ")}
+              {s.replaceAll("_", " ")}
             </Button>
           ))}
         </div>
@@ -91,7 +91,7 @@ export function Projects() {
       {projects && projects.length > 0 && filteredProjects.length === 0 && (
         <EmptyState
           icon={Hexagon}
-          message={`No ${statusFilter.replace("_", " ")} projects.`}
+          message={`No ${statusFilter.replaceAll("_", " ")} projects.`}
         />
       )}
 

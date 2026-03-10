@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "@/lib/router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { agentsApi, type OrgNode } from "../api/agents";
 import { heartbeatsApi } from "../api/heartbeats";
 import { useCompany } from "../context/CompanyContext";
@@ -9,6 +9,7 @@ import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useSidebar } from "../context/SidebarContext";
 import { queryKeys } from "../lib/queryKeys";
 import { StatusBadge } from "../components/StatusBadge";
+import { StatusBadgeMenu } from "../components/StatusBadgeMenu";
 import { agentStatusDot, agentStatusDotDefault } from "../lib/status-colors";
 import { EntityRow } from "../components/EntityRow";
 import { EmptyState } from "../components/EmptyState";
@@ -17,7 +18,13 @@ import { relativeTime, cn, agentRouteRef, agentUrl } from "../lib/utils";
 import { PageTabBar } from "../components/PageTabBar";
 import { Tabs } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, List, GitBranch, SlidersHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Bot, Plus, List, GitBranch, SlidersHorizontal, Pause, Play, ChevronDown } from "lucide-react";
 import { AGENT_ROLE_LABELS, type Agent } from "@paperclipai/shared";
 
 import { getAdapterLabel } from "../adapters/adapter-display-registry";
@@ -108,6 +115,41 @@ export function Agents() {
     return map;
   }, [agents]);
 
+  const queryClient = useQueryClient();
+
+  const filtered = useMemo(
+    () => filterAgents(agents ?? [], tab, showTerminated),
+    [agents, tab, showTerminated],
+  );
+  const filteredOrg = useMemo(
+    () => filterOrgTree(orgTree ?? [], tab, showTerminated),
+    [orgTree, tab, showTerminated],
+  );
+
+  // Determine bulk toggle state from currently visible agents
+  const toggleableAgents = useMemo(
+    () => filtered.filter((a) => a.status !== "terminated" && a.status !== "pending_approval"),
+    [filtered],
+  );
+  const allPaused = toggleableAgents.length > 0 && toggleableAgents.every((a) => a.status === "paused");
+  const allActive = toggleableAgents.length > 0 && toggleableAgents.every((a) => a.status !== "paused");
+
+  const bulkToggle = useMutation({
+    mutationFn: async (action: "pause" | "resume") => {
+      await Promise.allSettled(
+        toggleableAgents.map((a) =>
+          action === "pause"
+            ? agentsApi.pause(a.id, selectedCompanyId!)
+            : agentsApi.resume(a.id, selectedCompanyId!),
+        ),
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(selectedCompanyId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.org(selectedCompanyId!) });
+    },
+  });
+
   useEffect(() => {
     setBreadcrumbs([{ label: "Agents" }]);
   }, [setBreadcrumbs]);
@@ -119,9 +161,6 @@ export function Agents() {
   if (isLoading) {
     return <PageSkeleton variant="list" />;
   }
-
-  const filtered = filterAgents(agents ?? [], tab, showTerminated);
-  const filteredOrg = filterOrgTree(orgTree ?? [], tab, showTerminated);
 
   return (
     <div className="space-y-4">
@@ -192,6 +231,58 @@ export function Agents() {
               </button>
             </div>
           )}
+          {/* Bulk toggle */}
+          {toggleableAgents.length > 0 && (
+            <div className="flex items-center">
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-r-none border-r-0"
+                onClick={() => bulkToggle.mutate(allPaused ? "resume" : "pause")}
+                disabled={bulkToggle.isPending}
+              >
+                {allPaused ? (
+                  <>
+                    <Play className="h-3.5 w-3.5 mr-1.5" />
+                    Resume All
+                  </>
+                ) : (
+                  <>
+                    <Pause className="h-3.5 w-3.5 mr-1.5" />
+                    Pause All
+                  </>
+                )}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild disabled={bulkToggle.isPending}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-l-none px-1.5"
+                    disabled={bulkToggle.isPending}
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => bulkToggle.mutate("pause")}
+                    disabled={allActive ? false : allPaused}
+                  >
+                    <Pause className="h-3.5 w-3.5" />
+                    Pause All
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => bulkToggle.mutate("resume")}
+                    disabled={allPaused ? false : allActive}
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    Resume All
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
           <Button size="sm" variant="outline" onClick={openNewAgent}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             New Agent
@@ -241,7 +332,7 @@ export function Agents() {
                           liveCount={liveRunByAgent.get(agent.id)!.liveCount}
                         />
                       ) : (
-                        <StatusBadge status={agent.status} />
+                        <StatusBadgeMenu agentId={agent.id} status={agent.status} companyId={selectedCompanyId!} />
                       )}
                     </span>
                     <div className="hidden sm:flex items-center gap-3">
@@ -259,7 +350,7 @@ export function Agents() {
                         {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : "—"}
                       </span>
                       <span className="w-20 flex justify-end">
-                        <StatusBadge status={agent.status} />
+                        <StatusBadgeMenu agentId={agent.id} status={agent.status} companyId={selectedCompanyId!} />
                       </span>
                     </div>
                   </div>
@@ -280,7 +371,7 @@ export function Agents() {
       {effectiveView === "org" && filteredOrg.length > 0 && (
         <div className="border border-border py-1">
           {filteredOrg.map((node) => (
-            <OrgTreeNode key={node.id} node={node} depth={0} agentMap={agentMap} liveRunByAgent={liveRunByAgent} />
+            <OrgTreeNode key={node.id} node={node} depth={0} agentMap={agentMap} liveRunByAgent={liveRunByAgent} companyId={selectedCompanyId!} />
           ))}
         </div>
       )}
@@ -305,11 +396,13 @@ function OrgTreeNode({
   depth,
   agentMap,
   liveRunByAgent,
+  companyId,
 }: {
   node: OrgNode;
   depth: number;
   agentMap: Map<string, Agent>;
   liveRunByAgent: Map<string, { runId: string; liveCount: number }>;
+  companyId: string;
 }) {
   const agent = agentMap.get(node.id);
 
@@ -340,7 +433,7 @@ function OrgTreeNode({
                 liveCount={liveRunByAgent.get(node.id)!.liveCount}
               />
             ) : (
-              <StatusBadge status={node.status} />
+              <StatusBadgeMenu agentId={node.id} status={node.status} companyId={companyId} />
             )}
           </span>
           <div className="hidden sm:flex items-center gap-3">
@@ -362,7 +455,7 @@ function OrgTreeNode({
               </>
             )}
             <span className="w-20 flex justify-end">
-              <StatusBadge status={node.status} />
+              <StatusBadgeMenu agentId={node.id} status={node.status} companyId={companyId} />
             </span>
           </div>
         </div>
@@ -370,7 +463,7 @@ function OrgTreeNode({
       {node.reports && node.reports.length > 0 && (
         <div className="border-l border-border/50 ml-4">
           {node.reports.map((child) => (
-            <OrgTreeNode key={child.id} node={child} depth={depth + 1} agentMap={agentMap} liveRunByAgent={liveRunByAgent} />
+            <OrgTreeNode key={child.id} node={child} depth={depth + 1} agentMap={agentMap} liveRunByAgent={liveRunByAgent} companyId={companyId} />
           ))}
         </div>
       )}

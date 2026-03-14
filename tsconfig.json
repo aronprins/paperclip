@@ -13,6 +13,7 @@
     { "path": "./packages/adapters/pi-local" },
     { "path": "./server" },
     { "path": "./ui" },
-    { "path": "./cli" }
+    { "path": "./cli" },
+    { "path": "./electron" }
   ]
 }

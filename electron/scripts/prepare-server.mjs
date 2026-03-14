@@ -7,8 +7,8 @@
  * (pointing to dist/) instead of the dev exports (pointing to src/*.ts).
  */
 
-import { execSync } from "node:child_process";
-import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, symlinkSync } from "node:fs";
+import { execSync, execFileSync } from "node:child_process";
+import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, symlinkSync, realpathSync, mkdirSync, cpSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,10 +38,26 @@ if (existsSync(scopeDir)) {
     const pkgJsonPath = path.join(pkgDir, "package.json");
     if (!existsSync(pkgJsonPath)) continue;
 
-    // Skip symlinked package dirs — writing through them would modify source files in the monorepo
+    // Replace symlinked workspace packages with production-ready copies.
+    // We only copy dist/ and package.json (not node_modules or src/) so that
+    // Node resolves transitive deps from the deploy dir's top-level node_modules.
     if (lstatSync(pkgDir).isSymbolicLink()) {
-      console.log(`[prepare-server] Skipping symlinked @paperclipai/${pkg}`);
-      continue;
+      const realPath = realpathSync(pkgDir);
+      rmSync(pkgDir);
+      mkdirSync(pkgDir, { recursive: true });
+      // Copy package.json
+      cpSync(path.join(realPath, "package.json"), path.join(pkgDir, "package.json"));
+      // Copy dist/ (compiled output)
+      const distSrc = path.join(realPath, "dist");
+      if (existsSync(distSrc)) {
+        cpSync(distSrc, path.join(pkgDir, "dist"), { recursive: true });
+      }
+      // Copy skills/ if present (adapter packages may have skills/)
+      const skillsSrc = path.join(realPath, "skills");
+      if (existsSync(skillsSrc)) {
+        cpSync(skillsSrc, path.join(pkgDir, "skills"), { recursive: true });
+      }
+      console.log(`[prepare-server] Replaced symlink with copy for @paperclipai/${pkg}`);
     }
 
     const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8"));
@@ -53,7 +69,49 @@ if (existsSync(scopeDir)) {
   }
 }
 
-// ── Step 3: restore dylib soname symlinks stripped by pnpm store ─────────────
+// ── Step 3: hoist missing dependencies from .pnpm store ─────────────────────
+// pnpm deploy may not hoist transitive deps of workspace packages (since they
+// were symlinks). Scan the .pnpm store and create top-level symlinks for any
+// package that isn't already accessible from node_modules/.
+const pnpmDir = path.join(deployDir, "node_modules", ".pnpm");
+const topNodeModules = path.join(deployDir, "node_modules");
+if (existsSync(pnpmDir)) {
+  for (const entry of readdirSync(pnpmDir)) {
+    // Each .pnpm entry is like "postgres@3.4.8" or "@scope+name@ver"
+    const innerNm = path.join(pnpmDir, entry, "node_modules");
+    if (!existsSync(innerNm)) continue;
+    for (const innerPkg of readdirSync(innerNm)) {
+      // Skip .pnpm itself and already-hoisted packages
+      if (innerPkg === ".pnpm") continue;
+      if (innerPkg.startsWith("@")) {
+        // Scoped package: @scope/name lives in @scope/ dir
+        const scopeInner = path.join(innerNm, innerPkg);
+        const scopeTop = path.join(topNodeModules, innerPkg);
+        if (!existsSync(scopeTop)) mkdirSync(scopeTop, { recursive: true });
+        for (const scopedPkg of readdirSync(scopeInner)) {
+          const dest = path.join(scopeTop, scopedPkg);
+          if (!existsSync(dest)) {
+            const src = path.join(scopeInner, scopedPkg);
+            // Resolve through any symlinks in .pnpm to get the real dir
+            const realSrc = realpathSync(src);
+            symlinkSync(realSrc, dest);
+            console.log(`[prepare-server] Hoisted ${innerPkg}/${scopedPkg}`);
+          }
+        }
+      } else {
+        const dest = path.join(topNodeModules, innerPkg);
+        if (!existsSync(dest)) {
+          const src = path.join(innerNm, innerPkg);
+          const realSrc = realpathSync(src);
+          symlinkSync(realSrc, dest);
+          console.log(`[prepare-server] Hoisted ${innerPkg}`);
+        }
+      }
+    }
+  }
+}
+
+// ── Step 4: restore dylib soname symlinks stripped by pnpm store ─────────────
 // pnpm's content-addressable store only keeps real files, not the soname
 // symlinks (e.g. libzstd.1.dylib -> libzstd.1.5.7.dylib) that macOS dyld
 // needs to resolve @loader_path references. Recreate them.

@@ -8,7 +8,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync } from "node:fs";
+import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, symlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,6 +49,39 @@ if (existsSync(scopeDir)) {
       pkgJson.exports = pkgJson.publishConfig.exports;
       writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
       console.log(`[prepare-server] Patched exports for @paperclipai/${pkg}`);
+    }
+  }
+}
+
+// ── Step 3: restore dylib soname symlinks stripped by pnpm store ─────────────
+// pnpm's content-addressable store only keeps real files, not the soname
+// symlinks (e.g. libzstd.1.dylib -> libzstd.1.5.7.dylib) that macOS dyld
+// needs to resolve @loader_path references. Recreate them.
+const embeddedPostgresScope = path.join(deployDir, "node_modules", ".pnpm");
+if (existsSync(embeddedPostgresScope)) {
+  for (const entry of readdirSync(embeddedPostgresScope)) {
+    if (!entry.startsWith("@embedded-postgres")) continue;
+    const nativeLib = path.join(embeddedPostgresScope, entry, "node_modules", "@embedded-postgres");
+    if (!existsSync(nativeLib)) continue;
+    for (const arch of readdirSync(nativeLib)) {
+      const libDir = path.join(nativeLib, arch, "native", "lib");
+      if (!existsSync(libDir)) continue;
+      for (const file of readdirSync(libDir)) {
+        // Match versioned dylibs: libfoo.A.B.C.dylib or libfoo.A.B.dylib
+        const m = file.match(/^(lib[^.]+)\.(\d+)(\..+)?\.dylib$/);
+        if (!m) continue;
+        const base = m[1]; // e.g. libzstd, libicui18n
+        const major = m[2]; // e.g. 1, 77
+
+        // Create libfoo.A.dylib (soname) and libfoo.dylib (bare link)
+        for (const alias of [`${base}.${major}.dylib`, `${base}.dylib`]) {
+          const aliasPath = path.join(libDir, alias);
+          if (!existsSync(aliasPath)) {
+            symlinkSync(file, aliasPath);
+            console.log(`[prepare-server] Created dylib symlink ${alias} -> ${file}`);
+          }
+        }
+      }
     }
   }
 }

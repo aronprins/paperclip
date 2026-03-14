@@ -11,10 +11,11 @@ files:
   - package.json
 
 # Bundle the built server + UI alongside the app
-# node_modules comes from build/server-deploy (pnpm deploy output) so all
-# symlinks are self-contained relative refs within that directory.
+# node_modules comes from build/server-deploy (pnpm deploy --prod output) so
+# all symlinks are self-contained relative refs within that directory.
+# dist/ and package.json come directly from the server package (already built).
 extraResources:
-  - from: build/server-deploy/dist
+  - from: ../server/dist
     to: app-server/server/dist
     filter:
       - "**/*"
@@ -26,7 +27,7 @@ extraResources:
     to: app-server/server/node_modules
     filter:
       - "**/*"
-  - from: build/server-deploy/package.json
+  - from: ../server/package.json
     to: app-server/server/package.json
 
 # ─── macOS ───────────────────────────────────────────────────────────────────

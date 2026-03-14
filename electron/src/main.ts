@@ -497,14 +497,22 @@ app.whenReady().then(async () => {
 
     serverProcess = startServer();
 
-    // Watch stdout for server log milestones to update splash status
+    // Watch stdout/stderr for server log milestones and accumulate for error reporting
     let dbReady = false;
     let serverListening = false;
 
+    // Accumulate output so we can show it in the error dialog if the server crashes
+    const serverOutputLines: string[] = [];
+    const logFile = path.join(app.getPath("userData"), "server.log");
+    const logStream = fs.createWriteStream(logFile, { flags: "a" });
+    logStream.write(`\n--- Server start ${new Date().toISOString()} ---\n`);
+
     const onServerData = (chunk: Buffer) => {
       const text = chunk.toString();
+      serverOutputLines.push(...text.split("\n").filter(Boolean));
+      if (serverOutputLines.length > 200) serverOutputLines.splice(0, serverOutputLines.length - 200);
+      logStream.write(text);
 
-      // Detect database readiness from server logs
       if (!dbReady && (text.includes("database") || text.includes("postgres") || text.includes("migration"))) {
         dbReady = true;
         sendSplashStatus("database", "Running migrations\u2026", 35);
@@ -521,13 +529,15 @@ app.whenReady().then(async () => {
 
     serverProcess.on("exit", (code, signal) => {
       if (serverProcess) {
-        console.error(`Server exited unexpectedly (code=${code}, signal=${signal})`);
+        logStream.end();
+        const tail = serverOutputLines.slice(-30).join("\n");
+        console.error(`Server exited unexpectedly (code=${code}, signal=${signal})\n${tail}`);
         dialog
           .showMessageBox({
             type: "error",
             title: "Server Error",
             message: "The Paperclip server stopped unexpectedly.",
-            detail: `Exit code: ${code}, signal: ${signal}`,
+            detail: `Exit code: ${code}, signal: ${signal}\n\nLog: ${logFile}\n\n${tail}`,
             buttons: ["Quit"],
           })
           .then(() => app.quit());

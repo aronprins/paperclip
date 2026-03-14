@@ -16,7 +16,7 @@ extraResources:
     to: app-server/server/dist
     filter:
       - "**/*"
-  - from: ../server/ui-dist
+  - from: ../ui/dist
     to: app-server/server/ui-dist
     filter:
       - "**/*"

@@ -86,6 +86,8 @@ nsis:
 linux:
   icon: assets/icon.png
   category: Development
+  executableName: paperclip
+  artifactName: "Paperclip-${version}-${arch}.${ext}"
   target:
     - target: AppImage
       arch:

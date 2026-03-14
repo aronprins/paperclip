@@ -8,17 +8,17 @@
     "email": "hello@paperclipai.com"
   },
   "homepage": "https://github.com/paperclipai/paperclip",
-  "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "tsc",
     "start": "electron dist/main.js",
-    "pack": "pnpm build && electron-builder --dir",
-    "dist": "pnpm build && electron-builder",
-    "dist:mac": "pnpm build && electron-builder --mac",
-    "dist:mac-universal": "pnpm build && electron-builder --mac --universal",
-    "dist:win": "pnpm build && electron-builder --win"
+    "prepare-server": "node scripts/prepare-server.mjs",
+    "pack": "pnpm build && pnpm prepare-server && electron-builder --dir",
+    "dist": "pnpm build && pnpm prepare-server && electron-builder",
+    "dist:mac": "pnpm build && pnpm prepare-server && electron-builder --mac",
+    "dist:mac-universal": "pnpm build && pnpm prepare-server && electron-builder --mac --universal",
+    "dist:win": "pnpm build && pnpm prepare-server && electron-builder --win"
   },
   "dependencies": {
     "tree-kill": "^1.2.2"

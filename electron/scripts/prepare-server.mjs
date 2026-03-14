@@ -34,11 +34,12 @@ execSync(
 const scopeDir = path.join(deployDir, "node_modules", "@paperclipai");
 if (existsSync(scopeDir)) {
   for (const pkg of readdirSync(scopeDir)) {
-    const pkgJsonPath = path.join(scopeDir, pkg, "package.json");
+    const pkgDir = path.join(scopeDir, pkg);
+    const pkgJsonPath = path.join(pkgDir, "package.json");
     if (!existsSync(pkgJsonPath)) continue;
 
-    // Skip symlinks — writing through them would modify source files in the monorepo
-    if (lstatSync(pkgJsonPath).isSymbolicLink()) {
+    // Skip symlinked package dirs — writing through them would modify source files in the monorepo
+    if (lstatSync(pkgDir).isSymbolicLink()) {
       console.log(`[prepare-server] Skipping symlinked @paperclipai/${pkg}`);
       continue;
     }

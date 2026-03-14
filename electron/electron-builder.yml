@@ -29,6 +29,11 @@ extraResources:
       - "**/*"
   - from: ../server/package.json
     to: app-server/server/package.json
+  # Bundled Node.js binary (arch-specific, selected at build time)
+  - from: "build/node-bin/${os}-${arch}"
+    to: app-server/node-bin
+    filter:
+      - "**/*"
 
 # ─── macOS ───────────────────────────────────────────────────────────────────
 

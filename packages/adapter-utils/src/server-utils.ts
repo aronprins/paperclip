@@ -332,9 +332,25 @@ async function resolveSpawnTarget(
 }
 
 export function ensurePathInEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  if (typeof env.PATH === "string" && env.PATH.length > 0) return env;
-  if (typeof env.Path === "string" && env.Path.length > 0) return env;
-  return { ...env, PATH: defaultPathForPlatform() };
+  const pathKey = typeof env.PATH === "string" ? "PATH" : typeof env.Path === "string" ? "Path" : null;
+  const currentPath = pathKey ? (env[pathKey] as string) : "";
+  const defaults = defaultPathForPlatform();
+
+  if (!currentPath) {
+    return { ...env, PATH: defaults };
+  }
+
+  // Append default paths that aren't already present so that CLI tools
+  // installed in common locations (e.g. /usr/local/bin, /opt/homebrew/bin)
+  // are discoverable even when the parent process has a minimal PATH
+  // (typical for packaged Electron apps and launchd-spawned processes).
+  const delimiter = process.platform === "win32" ? ";" : ":";
+  const existing = new Set(currentPath.split(delimiter));
+  const missing = defaults.split(delimiter).filter((d) => d && !existing.has(d));
+
+  if (missing.length === 0) return env;
+
+  return { ...env, [pathKey!]: currentPath + delimiter + missing.join(delimiter) };
 }
 
 export async function ensureAbsoluteDirectory(

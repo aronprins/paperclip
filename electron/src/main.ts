@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execSync, spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import net from "node:net";
@@ -109,6 +109,60 @@ function findNodeBinary(): string {
 }
 
 /**
+ * Resolve the user's full login-shell PATH.
+ *
+ * Electron apps launched from Finder / Dock inherit a very minimal PATH that
+ * excludes directories like ~/.nvm, /opt/homebrew/bin, and npm global bin
+ * where CLI tools such as `claude` are commonly installed.  We spawn a login
+ * shell to retrieve the real PATH and merge it into the server environment.
+ */
+function resolveShellPath(): string {
+  const fallbackDirs = [
+    "/usr/local/bin",
+    "/opt/homebrew/bin",
+    "/usr/local/sbin",
+    "/usr/bin",
+    "/bin",
+    "/usr/sbin",
+    "/sbin",
+  ];
+
+  // Add ~/.local/bin and npm global bin (common claude install locations)
+  const home = process.env.HOME ?? "";
+  if (home) {
+    fallbackDirs.unshift(
+      path.join(home, ".local", "bin"),
+      path.join(home, ".npm-global", "bin"),
+    );
+
+    // nvm: try to resolve the default Node version's bin directory
+    const nvmDir = process.env.NVM_DIR ?? path.join(home, ".nvm");
+    try {
+      const ver = fs.readFileSync(path.join(nvmDir, "alias", "default"), "utf8").trim();
+      fallbackDirs.unshift(path.join(nvmDir, "versions", "node", ver, "bin"));
+    } catch { /* nvm not present */ }
+  }
+
+  try {
+    // Ask the user's default shell for its PATH (login mode so .profile / .zshrc are sourced)
+    const shell = process.env.SHELL || "/bin/zsh";
+    const shellPath = execSync(`${shell} -ilc 'echo $PATH'`, {
+      encoding: "utf8",
+      timeout: 5000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+    if (shellPath) return shellPath;
+  } catch { /* shell probe failed, use fallbacks */ }
+
+  // Merge current PATH with fallback directories
+  const current = process.env.PATH ?? "";
+  const existing = new Set(current.split(":"));
+  const missing = fallbackDirs.filter((d) => !existing.has(d));
+  return missing.length > 0 ? current + ":" + missing.join(":") : current;
+}
+
+/**
  * Spawn the Paperclip server as a child process.
  */
 function startServer(): ChildProcess {
@@ -119,10 +173,12 @@ function startServer(): ChildProcess {
 
   if (app.isPackaged) {
     const serverEntry = path.join(root, "server", "dist", "index.js");
+    const enrichedPath = resolveShellPath();
     child = spawn(findNodeBinary(), [serverEntry], {
       cwd: root,
       env: {
         ...process.env,
+        PATH: enrichedPath,
         NODE_ENV: "production",
         PORT: String(SERVER_PORT),
         PAPERCLIP_DATA_DIR: path.join(app.getPath("userData"), "data"),

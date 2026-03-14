@@ -144,4 +144,52 @@ if (existsSync(embeddedPostgresScope)) {
   }
 }
 
+// ── Step 5: download bundled Node.js binaries ───────────────────────────────
+// Download Node.js binaries for the current platform so the packaged app
+// doesn't depend on the user having Node installed.
+const NODE_VERSION = "v22.15.0"; // LTS
+const platform = process.platform; // darwin, win32, linux
+
+// Map to Node download naming
+const nodePlatform = platform === "win32" ? "win" : platform;
+// electron-builder uses "mac"/"linux"/"win" for ${os}
+const ebPlatform = platform === "darwin" ? "mac" : platform === "win32" ? "win" : "linux";
+const arches = platform === "darwin" ? ["x64", "arm64"] : ["x64"];
+
+const nodeBinDir = path.join(electronDir, "build", "node-bin");
+
+for (const arch of arches) {
+  const destDir = path.join(nodeBinDir, `${ebPlatform}-${arch}`);
+  const destBin = path.join(destDir, platform === "win32" ? "node.exe" : "node");
+
+  if (existsSync(destBin)) {
+    console.log(`[prepare-server] Node ${NODE_VERSION} ${arch} already downloaded, skipping`);
+    continue;
+  }
+
+  mkdirSync(destDir, { recursive: true });
+
+  const ext = platform === "win32" ? "zip" : "tar.gz";
+  const archiveName = `node-${NODE_VERSION}-${nodePlatform}-${arch}`;
+  const url = `https://nodejs.org/dist/${NODE_VERSION}/${archiveName}.${ext}`;
+  const archivePath = path.join(destDir, `node.${ext}`);
+
+  console.log(`[prepare-server] Downloading Node ${NODE_VERSION} for ${nodePlatform}-${arch}...`);
+
+  // Download
+  execSync(`curl -fsSL -o "${archivePath}" "${url}"`, { stdio: "inherit" });
+
+  // Extract just the node binary
+  if (platform === "win32") {
+    execSync(`powershell -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`, { stdio: "inherit" });
+    cpSync(path.join(destDir, archiveName, "node.exe"), destBin);
+    rmSync(path.join(destDir, archiveName), { recursive: true, force: true });
+  } else {
+    execSync(`tar -xzf "${archivePath}" -C "${destDir}" --strip-components=2 "${archiveName}/bin/node"`, { stdio: "inherit" });
+  }
+
+  rmSync(archivePath, { force: true });
+  console.log(`[prepare-server] Node ${NODE_VERSION} ${arch} ready at ${destBin}`);
+}
+
 console.log("[prepare-server] Done.");

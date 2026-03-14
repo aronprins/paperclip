@@ -61,19 +61,32 @@ function waitForPort(port: number, timeoutMs: number): Promise<void> {
 /**
  * Find the Node.js binary.
  *
- * macOS apps launched from Finder/Dock don't inherit the user's shell PATH,
- * so `node` is not on PATH. We probe well-known install locations instead.
+ * In packaged mode we ship a bundled Node binary inside the app resources.
+ * Falls back to probing well-known install locations if the bundled binary
+ * is missing for some reason.
  */
 function findNodeBinary(): string {
   // In dev mode Electron is launched from the terminal so PATH works fine.
   if (!app.isPackaged) return "node";
 
+  // Prefer the bundled Node binary shipped with the app
+  const isWin = process.platform === "win32";
+  const bundledNode = path.join(
+    process.resourcesPath,
+    "app-server",
+    "node-bin",
+    isWin ? "node.exe" : "node",
+  );
+  try {
+    fs.accessSync(bundledNode, fs.constants.X_OK);
+    return bundledNode;
+  } catch { /* bundled binary not found, fall back */ }
+
+  // Fallback: probe well-known install locations
   const candidates: string[] = [];
 
-  // Respect an explicit override (useful for CI / edge setups)
   if (process.env.NODE_PATH) candidates.push(process.env.NODE_PATH);
 
-  // NVM default alias
   const home = process.env.HOME ?? "";
   const nvmDir = process.env.NVM_DIR ?? path.join(home, ".nvm");
   try {
@@ -81,7 +94,6 @@ function findNodeBinary(): string {
     candidates.push(path.join(nvmDir, "versions", "node", ver, "bin", "node"));
   } catch { /* nvm not present */ }
 
-  // Common fixed locations (Homebrew Intel, Homebrew ARM, system)
   candidates.push(
     "/usr/local/bin/node",
     "/opt/homebrew/bin/node",
@@ -93,7 +105,6 @@ function findNodeBinary(): string {
     try { fs.accessSync(c, fs.constants.X_OK); return c; } catch { /* not here */ }
   }
 
-  // Last-ditch fallback — will throw ENOENT if still not found
   return "node";
 }
 

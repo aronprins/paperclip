@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
+import fs from "node:fs";
 import net from "node:net";
 import treeKill from "tree-kill";
 
@@ -58,6 +59,45 @@ function waitForPort(port: number, timeoutMs: number): Promise<void> {
 }
 
 /**
+ * Find the Node.js binary.
+ *
+ * macOS apps launched from Finder/Dock don't inherit the user's shell PATH,
+ * so `node` is not on PATH. We probe well-known install locations instead.
+ */
+function findNodeBinary(): string {
+  // In dev mode Electron is launched from the terminal so PATH works fine.
+  if (!app.isPackaged) return "node";
+
+  const candidates: string[] = [];
+
+  // Respect an explicit override (useful for CI / edge setups)
+  if (process.env.NODE_PATH) candidates.push(process.env.NODE_PATH);
+
+  // NVM default alias
+  const home = process.env.HOME ?? "";
+  const nvmDir = process.env.NVM_DIR ?? path.join(home, ".nvm");
+  try {
+    const ver = fs.readFileSync(path.join(nvmDir, "alias", "default"), "utf8").trim();
+    candidates.push(path.join(nvmDir, "versions", "node", ver, "bin", "node"));
+  } catch { /* nvm not present */ }
+
+  // Common fixed locations (Homebrew Intel, Homebrew ARM, system)
+  candidates.push(
+    "/usr/local/bin/node",
+    "/opt/homebrew/bin/node",
+    "/usr/bin/node",
+    "/usr/local/opt/node/bin/node",
+  );
+
+  for (const c of candidates) {
+    try { fs.accessSync(c, fs.constants.X_OK); return c; } catch { /* not here */ }
+  }
+
+  // Last-ditch fallback — will throw ENOENT if still not found
+  return "node";
+}
+
+/**
  * Spawn the Paperclip server as a child process.
  */
 function startServer(): ChildProcess {
@@ -68,7 +108,7 @@ function startServer(): ChildProcess {
 
   if (app.isPackaged) {
     const serverEntry = path.join(root, "server", "dist", "index.js");
-    child = spawn("node", [serverEntry], {
+    child = spawn(findNodeBinary(), [serverEntry], {
       cwd: root,
       env: {
         ...process.env,

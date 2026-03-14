@@ -37,6 +37,8 @@ extraResources:
 
 # ─── macOS ───────────────────────────────────────────────────────────────────
 
+afterPack: scripts/after-pack.mjs
+
 mac:
   category: public.app-category.developer-tools
   icon: assets/icon.png

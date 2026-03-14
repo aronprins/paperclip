@@ -1,8 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import net from "node:net";
 import treeKill from "tree-kill";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -68,10 +71,12 @@ function startServer(): ChildProcess {
 
   if (app.isPackaged) {
     const serverEntry = path.join(root, "server", "dist", "index.js");
-    child = spawn("node", [serverEntry], {
+    // Use the bundled Electron binary as a Node.js runtime via ELECTRON_RUN_AS_NODE
+    child = spawn(process.execPath, [serverEntry], {
       cwd: root,
       env: {
         ...process.env,
+        ELECTRON_RUN_AS_NODE: "1",
         NODE_ENV: "production",
         PORT: String(SERVER_PORT),
         PAPERCLIP_DATA_DIR: path.join(app.getPath("userData"), "data"),

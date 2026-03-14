@@ -14,16 +14,17 @@
     "dev": "node scripts/dev.mjs",
     "build": "tsc",
     "start": "electron dist/main.js",
-    "pack": "pnpm build && electron-builder --dir",
-    "dist": "pnpm build && electron-builder",
-    "dist:mac": "pnpm build && electron-builder --mac",
-    "dist:mac-universal": "pnpm build && electron-builder --mac --universal",
-    "dist:win": "pnpm build && electron-builder --win"
+    "pack": "pnpm build && node scripts/prepare-server.mjs && electron-builder --dir",
+    "dist": "pnpm build && node scripts/prepare-server.mjs && electron-builder",
+    "dist:mac": "pnpm build && node scripts/prepare-server.mjs && electron-builder --mac",
+    "dist:mac-universal": "pnpm build && node scripts/prepare-server.mjs && electron-builder --mac --universal",
+    "dist:win": "pnpm build && node scripts/prepare-server.mjs && electron-builder --win"
   },
   "dependencies": {
     "tree-kill": "^1.2.2"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "electron": "^33.3.1",
     "electron-builder": "^25.1.8",
     "typescript": "^5.7.3"

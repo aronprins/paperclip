@@ -26,7 +26,7 @@ if (existsSync(deployDir)) {
 }
 
 execSync(
-  `pnpm --filter @paperclipai/server deploy --prod "${deployDir}"`,
+  `pnpm --filter @paperclipai/server deploy --prod --ignore-scripts "${deployDir}"`,
   { cwd: monorepoRoot, stdio: "inherit" }
 );
 

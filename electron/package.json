@@ -2,6 +2,12 @@
   "name": "@paperclipai/electron",
   "version": "0.1.0",
   "private": true,
+  "description": "Paperclip desktop application",
+  "author": {
+    "name": "Paperclip AI",
+    "email": "hello@paperclipai.com"
+  },
+  "homepage": "https://github.com/paperclipai/paperclip",
   "type": "module",
   "main": "dist/main.js",
   "scripts": {

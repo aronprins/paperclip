@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { execSync, spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
+import os from "node:os";
 import fs from "node:fs";
 import net from "node:net";
 import treeKill from "tree-kill";
@@ -181,7 +182,7 @@ function startServer(): ChildProcess {
         PATH: enrichedPath,
         NODE_ENV: "production",
         PORT: String(SERVER_PORT),
-        PAPERCLIP_DATA_DIR: path.join(app.getPath("userData"), "data"),
+        PAPERCLIP_HOME: path.join(os.homedir(), ".paperclip"),
       },
       stdio: ["ignore", "pipe", "pipe"],
       detached: !isWin,

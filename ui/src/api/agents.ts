@@ -11,6 +11,7 @@ import type {
   HeartbeatRun,
   Approval,
   AgentConfigRevision,
+  AgentStatus,
 } from "@paperclipai/shared";
 import { isUuidLike, normalizeAgentUrlKey } from "@paperclipai/shared";
 import { ApiError, api } from "./client";
@@ -46,7 +47,7 @@ export interface OrgNode {
   id: string;
   name: string;
   role: string;
-  status: string;
+  status: AgentStatus;
   reports: OrgNode[];
 }
 

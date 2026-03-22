@@ -12,20 +12,11 @@ export default async function afterPack(context) {
 
   const appPath = join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`);
   console.log(`[after-pack] Stripping extended attributes from ${appPath}`);
-  // Clear all xattrs from the .app bundle root (com.apple.FinderInfo blocks codesign).
-  // Use non-recursive xattr -c so broken symlinks inside the bundle don't abort the call.
   try {
-    execFileSync("xattr", ["-c", appPath]);
+    execFileSync("xattr", ["-cr", appPath]);
   } catch (e) {
-    console.warn(`[after-pack] xattr -c on root failed: ${e.message}`);
-  }
-  // Also recursively strip xattrs from Frameworks and MacOS dirs (the binaries codesign signs).
-  for (const sub of ["Contents/Frameworks", "Contents/MacOS"]) {
-    try {
-      execFileSync("xattr", ["-cr", `${appPath}/${sub}`]);
-    } catch (e) {
-      // non-fatal
-    }
+    console.warn(`[after-pack] xattr -cr failed: ${e.message}`);
+    try { execFileSync("xattr", ["-c", appPath]); } catch {}
   }
 
   console.log(`[after-pack] Ad-hoc signing ${appPath}`);

@@ -8,7 +8,7 @@
  */
 
 import { execSync, execFileSync } from "node:child_process";
-import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, symlinkSync, realpathSync, mkdirSync, cpSync } from "node:fs";
+import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, symlinkSync, realpathSync, mkdirSync, cpSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -190,6 +190,75 @@ for (const arch of arches) {
 
   rmSync(archivePath, { force: true });
   console.log(`[prepare-server] Node ${NODE_VERSION} ${arch} ready at ${destBin}`);
+}
+
+// ── Step 6: detect and remove macOS Finder duplicate files ("* 2.*") ─────────
+// iCloud Drive / Finder sometimes creates "file 2.txt" copies when it syncs
+// files to a directory that already contains them.  These duplicates silently
+// corrupt the deploy: drizzle migration files with " 2" in their name won't be
+// recognised as applied, and duplicate JS/map files can shadow real modules.
+// Abort the build if any remain so the developer knows to re-run after fixing.
+console.log("[prepare-server] Scanning for macOS Finder duplicate files...");
+{
+  function* walkDir(dir) {
+    for (const entry of readdirSync(dir)) {
+      const full = path.join(dir, entry);
+      let stat;
+      try { stat = lstatSync(full); } catch { continue; }
+      if (stat.isSymbolicLink()) continue; // don't follow symlinks
+      if (stat.isDirectory()) { yield* walkDir(full); } else { yield full; }
+    }
+  }
+
+  const dupes = [];
+  for (const file of walkDir(deployDir)) {
+    const base = path.basename(file);
+    // Match " 2", " 2.ext", " 3.ext" etc. — but not legitimate names like "v2.js"
+    if (/ \d+(\.[^/]+)?$/.test(base) && / \d+/.test(base)) {
+      dupes.push(file);
+    }
+  }
+
+  if (dupes.length > 0) {
+    console.warn(`[prepare-server] WARNING: found ${dupes.length} Finder duplicate file(s). Removing them now.`);
+    for (const f of dupes) {
+      rmSync(f, { force: true });
+      console.warn(`[prepare-server]   removed: ${path.relative(deployDir, f)}`);
+    }
+  } else {
+    console.log("[prepare-server] No Finder duplicates found.");
+  }
+}
+
+// ── Step 7: validate migration files in the deployed @paperclipai/db ─────────
+// Ensures that the deployed package has all migration SQL files from source so
+// the server can apply them on first run against an existing database.
+{
+  const srcMigrationsDir = path.join(monorepoRoot, "packages", "db", "src", "migrations");
+  const deployedMigrationsDir = path.join(deployDir, "node_modules", "@paperclipai", "db", "dist", "migrations");
+
+  if (existsSync(srcMigrationsDir) && existsSync(deployedMigrationsDir)) {
+    const srcSql = readdirSync(srcMigrationsDir).filter(f => f.endsWith(".sql")).sort();
+    const deployedSql = readdirSync(deployedMigrationsDir).filter(f => f.endsWith(".sql")).sort();
+
+    const missingSql = srcSql.filter(f => !deployedSql.includes(f));
+    if (missingSql.length > 0) {
+      console.log(`[prepare-server] Deployed @paperclipai/db is missing ${missingSql.length} migration(s): ${missingSql.join(", ")}`);
+      console.log("[prepare-server] Syncing migration files from source...");
+      for (const f of missingSql) {
+        cpSync(path.join(srcMigrationsDir, f), path.join(deployedMigrationsDir, f));
+      }
+      // Also sync the meta journal
+      const srcMeta = path.join(srcMigrationsDir, "meta");
+      const deployedMeta = path.join(deployedMigrationsDir, "meta");
+      if (existsSync(srcMeta)) {
+        cpSync(srcMeta, deployedMeta, { recursive: true });
+      }
+      console.log(`[prepare-server] Synced ${missingSql.length} missing migration(s).`);
+    } else {
+      console.log(`[prepare-server] Migration files validated: ${deployedSql.length} SQL file(s) present.`);
+    }
+  }
 }
 
 console.log("[prepare-server] Done.");

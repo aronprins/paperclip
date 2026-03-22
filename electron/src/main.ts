@@ -234,6 +234,11 @@ function startServer(port: number): ChildProcess {
         NODE_ENV: "production",
         PORT: String(port),
         PAPERCLIP_HOME: path.join(os.homedir(), ".paperclip"),
+        // Always auto-apply pending migrations on startup — Electron spawns the
+        // server with stdin ignored (not a TTY) so the TTY heuristic in the
+        // server would auto-apply anyway, but this makes the intent explicit and
+        // ensures it works even if the heuristic changes.
+        PAPERCLIP_MIGRATION_AUTO_APPLY: "true",
       },
       stdio: ["ignore", "pipe", "pipe"],
       detached: !isWin,

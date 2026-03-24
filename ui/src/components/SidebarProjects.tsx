@@ -161,8 +161,20 @@ function SortableProjectItem({
 }
 
 export function SidebarProjects() {
-  const [open, setOpen] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem("paperclip:sidebar-projects-open") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  const [showCompleted, setShowCompleted] = useState(() => {
+    try {
+      return localStorage.getItem("paperclip:sidebar-show-completed") !== "false";
+    } catch {
+      return true;
+    }
+  });
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { openNewProject } = useDialog();
   const { isMobile, setSidebarOpen } = useSidebar();
@@ -262,7 +274,7 @@ export function SidebarProjects() {
   );
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={(v) => { setOpen(v); try { localStorage.setItem("paperclip:sidebar-projects-open", String(v)); } catch {} }}>
       <div className="group">
         <div className="flex items-center px-3 py-1.5">
           <CollapsibleTrigger className="flex items-center gap-1 flex-1 min-w-0">
@@ -301,7 +313,11 @@ export function SidebarProjects() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowCompleted((prev) => !prev);
+                    setShowCompleted((prev) => {
+                      const next = !prev;
+                      try { localStorage.setItem("paperclip:sidebar-show-completed", String(next)); } catch {}
+                      return next;
+                    });
                   }}
                   className={cn(
                     "flex items-center justify-center h-4 w-4 rounded transition-colors",

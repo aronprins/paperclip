@@ -27,7 +27,13 @@ import {
 } from "@/components/ui/tooltip";
 import type { Agent } from "@paperclipai/shared";
 export function SidebarAgents() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem("paperclip:sidebar-agents-open") !== "false";
+    } catch {
+      return true;
+    }
+  });
   const [showPaused, setShowPaused] = useState(() => {
     try {
       return localStorage.getItem("paperclip:sidebar-show-paused") !== "false";
@@ -213,7 +219,7 @@ export function SidebarAgents() {
   };
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={(v) => { setOpen(v); try { localStorage.setItem("paperclip:sidebar-agents-open", String(v)); } catch {} }}>
       <div className="group">
         <div className="flex items-center px-3 py-1.5">
           <CollapsibleTrigger className="flex items-center gap-1 flex-1 min-w-0">

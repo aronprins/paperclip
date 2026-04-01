@@ -55,12 +55,30 @@ export default async function afterPack(context) {
     console.log(`[after-pack] Pre-signing ${natives.length} native binaries inside Resources`);
     for (const bin of natives) {
       try {
-        execFileSync("codesign", ["--sign", "-", "--force", "--preserve-metadata=entitlements", bin]);
+        // Do NOT use --preserve-metadata here: it carries forward the original
+        // publisher's hardened-runtime flag (0x10000), which causes dyld to
+        // reject the binary on macOS 26+ with "different Team IDs".
+        execFileSync("codesign", ["--sign", "-", "--force", bin]);
       } catch {
         // Some files may not be signable (e.g. plain text files caught by mode check); ignore.
-        try { execFileSync("codesign", ["--sign", "-", "--force", bin]); } catch {}
       }
     }
+  }
+
+  // Explicitly re-sign the Electron Framework binary without the hardened-runtime
+  // flag.  The original Electron binary ships with flags=0x10000(runtime) and
+  // --preserve-metadata in the pre-sign step above carries that flag forward.
+  // On macOS 26+, dyld rejects loading a hardened-runtime framework into a
+  // non-platform ad-hoc process with "different Team IDs", so we must strip it.
+  const electronFrameworkBin = join(
+    appPath, "Contents", "Frameworks",
+    "Electron Framework.framework", "Versions", "A", "Electron Framework"
+  );
+  try {
+    execFileSync("codesign", ["--sign", "-", "--force", electronFrameworkBin]);
+    console.log(`[after-pack] Stripped hardened-runtime from Electron Framework`);
+  } catch (e) {
+    console.warn(`[after-pack] Could not re-sign Electron Framework binary: ${e.message}`);
   }
 
   // Strip again — individual codesign calls can leave xattr detritus that

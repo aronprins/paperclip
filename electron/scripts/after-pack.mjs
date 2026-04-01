@@ -63,6 +63,10 @@ export default async function afterPack(context) {
     }
   }
 
+  // Strip again — individual codesign calls can leave xattr detritus that
+  // causes the final deep sign to fail with "resource fork not allowed".
+  try { execFileSync("xattr", ["-cr", appPath]); } catch {}
+
   console.log(`[after-pack] Ad-hoc signing ${appPath}`);
   execFileSync("codesign", ["--sign", "-", "--deep", "--force", appPath], {
     stdio: "inherit",

@@ -166,19 +166,24 @@ export function SidebarAgents() {
     const canToggle = AGENT_ACTIONABLE_STATUSES.has(agent.status);
 
     return (
-      <div key={agent.id} className="flex items-center">
+      <div key={agent.id} className={cn(
+        "group/agent relative transition-colors",
+        activeAgentId === agentRouteRef(agent)
+          ? "bg-accent"
+          : "hover:bg-accent/50",
+      )}>
         <NavLink
           to={activeTab ? `${agentUrl(agent)}/${activeTab}` : agentUrl(agent)}
           onClick={() => {
             if (isMobile) setSidebarOpen(false);
           }}
           className={cn(
-            "flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium transition-colors flex-1 min-w-0",
+            "flex items-center gap-2.5 px-3 py-1.5 text-[13px] font-medium transition-colors w-full min-w-0",
             activeAgentId === agentRouteRef(agent)
-              ? "bg-accent text-foreground"
+              ? "text-foreground"
               : dimmed
-                ? "text-muted-foreground/60 hover:bg-accent/50 hover:text-foreground"
-                : "text-foreground/80 hover:bg-accent/50 hover:text-foreground",
+                ? "text-muted-foreground/60 hover:text-foreground"
+                : "text-foreground/80 hover:text-foreground",
           )}
         >
           <AgentIcon
@@ -211,6 +216,7 @@ export function SidebarAgents() {
               <button
                 type="button"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   if (isPaused) {
                     resumeAgent.mutate(agent.id);
@@ -219,12 +225,7 @@ export function SidebarAgents() {
                   }
                 }}
                 disabled={pauseAgent.isPending || resumeAgent.isPending}
-                className={cn(
-                  "flex items-center justify-center h-5 w-5 mr-1.5 rounded shrink-0 transition-colors",
-                  isPaused
-                    ? "text-orange-500 hover:text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-500/20"
-                    : "text-muted-foreground/40 hover:text-foreground hover:bg-accent/50",
-                )}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded shrink-0 transition-colors text-muted-foreground/60 hover:text-foreground hover:bg-accent/50 opacity-0 group-hover/agent:opacity-100 cursor-pointer"
                 aria-label={isPaused ? `Resume ${agent.name}` : `Pause ${agent.name}`}
               >
                 {isPaused ? <Play className="h-2.5 w-2.5" /> : <Pause className="h-2.5 w-2.5" />}
@@ -261,7 +262,7 @@ export function SidebarAgents() {
                 onClick={() => {
                   if (isMobile) setSidebarOpen(false);
                 }}
-                className="flex items-center justify-center h-4 w-4 rounded text-muted-foreground/60 hover:text-foreground hover:bg-accent/50 transition-colors"
+                className="flex items-center justify-center h-4 w-4 rounded text-muted-foreground/60 hover:text-foreground hover:bg-accent/50 transition-colors opacity-0 group-hover:opacity-100"
                 aria-label="View all agents"
               >
                 <Eye className="h-3 w-3" />
@@ -281,12 +282,7 @@ export function SidebarAgents() {
                     bulkToggle.mutate();
                   }}
                   disabled={bulkToggle.isPending}
-                  className={cn(
-                    "flex items-center justify-center h-4 w-4 rounded transition-colors",
-                    allPaused
-                      ? "text-orange-500 hover:text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-500/20"
-                      : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/50",
-                  )}
+                  className="flex items-center justify-center h-4 w-4 rounded transition-colors text-muted-foreground/60 hover:text-foreground hover:bg-accent/50 opacity-0 group-hover:opacity-100"
                   aria-label={allPaused ? "Resume all agents" : "Pause all agents"}
                 >
                   {allPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
@@ -314,12 +310,7 @@ export function SidebarAgents() {
                       return next;
                     });
                   }}
-                  className={cn(
-                    "flex items-center justify-center h-4 w-4 rounded transition-colors",
-                    showPaused
-                      ? "text-foreground/80 hover:text-foreground hover:bg-accent/50"
-                      : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/50",
-                  )}
+                  className="flex items-center justify-center h-4 w-4 rounded transition-colors text-muted-foreground/60 hover:text-foreground hover:bg-accent/50 opacity-0 group-hover:opacity-100"
                   aria-label={showPaused ? "Hide paused agents" : "Show paused agents"}
                 >
                   {showPaused ? <ToggleRight className="h-3 w-3" /> : <ToggleLeft className="h-3 w-3" />}

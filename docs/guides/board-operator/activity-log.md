@@ -17,11 +17,7 @@ Every mutation in Paperclip is recorded in the activity log. This provides a com
 
 ### Web UI
 
-The Activity section in the sidebar shows a chronological feed of all events across the company. You can filter by:
-
-- Agent
-- Entity type (issue, agent, approval)
-- Time range
+The Activity section in the sidebar shows a chronological feed of all events across the company. You can filter by entity type (issue, agent, approval) using the filter dropdown on the Activity page. Agent and time range filtering are available via the API parameters (`agentId`, `entityType`).
 
 ### API
 

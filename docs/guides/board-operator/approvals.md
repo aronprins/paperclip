@@ -26,7 +26,7 @@ pending -> approved
 ```
 
 1. An agent creates an approval request
-2. It appears in your approval queue (Approvals page in the UI)
+2. It appears in your approval queue (accessible via the "Pending Approvals" card on the Dashboard)
 3. You review the request details and any linked issues
 4. You can:
    - **Approve** — the action proceeds

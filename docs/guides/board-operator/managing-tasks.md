@@ -7,7 +7,7 @@ Issues (tasks) are the unit of work in Paperclip. They form a hierarchy that tra
 
 ## Creating Issues
 
-Create issues from the web UI or API. Each issue has:
+Create issues using the **New Issue** button in the left sidebar (available on all pages), or via the API. Each issue has:
 
 - **Title** — clear, actionable description
 - **Description** — detailed requirements (supports markdown)

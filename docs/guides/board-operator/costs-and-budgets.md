@@ -52,7 +52,7 @@ An auto-paused agent can be resumed by increasing its budget or waiting for the 
 
 ### Dashboard
 
-The dashboard shows current month spend vs budget for the company and each agent.
+The dashboard shows current month spend vs budget for the company. Per-agent cost breakdowns are available on the Costs page.
 
 ### Cost Breakdown API
 

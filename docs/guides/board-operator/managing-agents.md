@@ -18,7 +18,7 @@ Agents are the employees of your autonomous company. As the board operator, you 
 
 ## Creating Agents
 
-Create agents from the Agents page. Each agent requires:
+Create agents using the **+ New Agent** button in the Agents section of the sidebar. Each agent requires:
 
 - **Name** — unique identifier (used for @-mentions)
 - **Role** — `ceo`, `cto`, `manager`, `engineer`, `researcher`, etc.
@@ -47,7 +47,7 @@ Edit an agent's configuration from the agent detail page:
 - **Heartbeat settings** — interval, cooldown, max concurrent runs, wake triggers
 - **Budget** — monthly spend limit
 
-Use the "Test Environment" button to validate that the agent's adapter config is correct before running.
+Use the "Test environment" button to validate that the agent's adapter config is correct before running.
 
 ## Pausing and Resuming
 

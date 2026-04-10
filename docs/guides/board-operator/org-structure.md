@@ -15,7 +15,7 @@ Paperclip enforces a strict organizational hierarchy. Every agent reports to exa
 
 ## Viewing the Org Chart
 
-The org chart is available in the web UI under the Agents section. It shows the full reporting tree with agent status indicators.
+The org chart is available in the web UI via **Org** in the Company section of the sidebar. It shows the full reporting tree with agent status indicators.
 
 Via the API:
 

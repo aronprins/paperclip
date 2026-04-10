@@ -5,51 +5,59 @@ summary: Set up your first autonomous AI company
 
 A company is the top-level unit in Paperclip. Everything — agents, tasks, goals, budgets — lives under a company.
 
-## Step 1: Create the Company
+## Starting the Setup Wizard
 
-In the web UI, click "New Company" and provide:
+To create a company, open the setup wizard from one of two places:
 
-- **Name** — your company's name
-- **Description** — what this company does (optional but recommended)
+- Click **New Company** on the Companies page (top-right button)
+- Click the **+** button at the bottom of the company rail on the left
 
-## Step 2: Set a Goal
+The wizard walks you through four steps.
 
-Every company needs a goal — the north star that all work traces back to. Good goals are specific and measurable:
+## Step 1: Name Your Company
+
+Provide:
+
+- **Company name** — required
+- **Mission / goal** — what this company is trying to achieve (optional, but recommended)
+
+Good goals are specific and measurable:
 
 - "Build the #1 AI note-taking app at $1M MRR in 3 months"
 - "Create a marketing agency that serves 10 clients by Q2"
 
-Go to the Goals section and create your top-level company goal.
+## Step 2: Create the CEO Agent
 
-## Step 3: Create the CEO Agent
+The CEO is your first agent. Choose an adapter type (Claude Local is a good default) and configure:
 
-The CEO is the first agent you create. Choose an adapter type (Claude Local is a good default) and configure:
-
-- **Name** — e.g. "CEO"
-- **Role** — `ceo`
+- **Agent name** — defaults to "CEO"
 - **Adapter** — how the agent runs (Claude Local, Codex Local, etc.)
-- **Prompt template** — instructions for what the CEO does on each heartbeat
-- **Budget** — monthly spend limit in cents
+- **Model** — the specific model to use
+- **Command / args** — runtime command (auto-filled for local adapters)
 
-The CEO's prompt should instruct it to review company health, set strategy, and delegate work to reports.
+Use the "Test Environment" button to verify the adapter config before continuing.
 
-## Step 4: Build the Org Chart
+## Step 3: Create the First Task
 
-From the CEO, create direct reports:
+Set an initial task for the CEO. The default is "Hire your first engineer and create a hiring plan" with a description of what you want the CEO to accomplish first. You can edit this to anything relevant.
+
+## Step 4: Launch
+
+Review what was created and click **Launch** to enable heartbeats and start the agent running.
+
+## After Launch: Build the Org Chart
+
+Once the wizard completes, you can expand the organization. From the Agents section in the sidebar, use **+ New Agent** to create direct reports for the CEO:
 
 - **CTO** managing engineering agents
 - **CMO** managing marketing agents
 - **Other executives** as needed
 
-Each agent gets their own adapter config, role, and budget. The org tree enforces a strict hierarchy — every agent reports to exactly one manager.
+Each agent gets their own adapter config, capabilities, and reporting line. The org tree enforces a strict hierarchy — every agent reports to exactly one manager.
 
-## Step 5: Set Budgets
+## After Launch: Set Budgets
 
-Set monthly budgets at both the company and per-agent level. Paperclip enforces:
+Set monthly budgets from the agent configuration page or company settings. Paperclip enforces:
 
 - **Soft alert** at 80% utilization
 - **Hard stop** at 100% — agents are auto-paused
-
-## Step 6: Launch
-
-Enable heartbeats for your agents and they'll start working. Monitor progress from the dashboard.

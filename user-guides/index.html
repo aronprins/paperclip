@@ -608,6 +608,173 @@
     #theme-toggle:hover { color: var(--graphite); background: var(--linen); }
     #theme-toggle svg   { width: 18px; height: 18px; }
 
+    /* ─── Mobile: hamburger button ─────────────────────────────────────────── */
+    #hamburger {
+      display: none;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ash);
+      flex-shrink: 0;
+      margin-left: 4px;
+      transition: color var(--transition), background var(--transition);
+    }
+
+    #hamburger:hover { color: var(--graphite); background: var(--linen); }
+    #hamburger svg   { width: 18px; height: 18px; }
+
+    /* ─── Mobile: backdrop ──────────────────────────────────────────────────── */
+    #mobile-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #mobile-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ─── Mobile: slide-in drawer ───────────────────────────────────────────── */
+    #mobile-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 288px;
+      max-width: 85vw;
+      background: var(--white);
+      border-left: 1.5px solid var(--stone);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow: hidden;
+    }
+
+    #mobile-drawer.is-open { transform: translateX(0); }
+
+    #mobile-drawer-header {
+      display: flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--stone);
+      flex-shrink: 0;
+      gap: 10px;
+    }
+
+    #mobile-drawer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      text-decoration: none;
+    }
+
+    #mobile-drawer-logo svg { width: 18px; height: 18px; }
+
+    #mobile-drawer-logo-name {
+      font-weight: 600;
+      font-size: 13.5px;
+      color: var(--ink);
+    }
+
+    #mobile-drawer-close {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ash);
+      transition: color var(--transition), background var(--transition);
+    }
+
+    #mobile-drawer-close:hover { color: var(--graphite); background: var(--linen); }
+    #mobile-drawer-close svg   { width: 16px; height: 16px; }
+
+    #mobile-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      padding: 8px 0 24px;
+    }
+
+    #mobile-drawer-body::-webkit-scrollbar { display: none; }
+
+    .drawer-section-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--graphite);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-family: var(--font-body);
+      transition: color var(--transition), background var(--transition);
+    }
+
+    .drawer-section-btn:hover { color: var(--ink); background: var(--linen); }
+    .drawer-section-btn.active { color: var(--ink); }
+
+    .drawer-chevron {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--ash);
+      transition: transform 0.2s ease;
+    }
+
+    .drawer-section.is-open .drawer-chevron { transform: rotate(180deg); }
+
+    .drawer-pages {
+      display: none;
+      padding: 0 0 6px;
+    }
+
+    .drawer-section.is-open .drawer-pages { display: block; }
+
+    .drawer-page-link {
+      display: block;
+      padding: 7px 16px 7px 32px;
+      font-size: 13px;
+      color: var(--graphite);
+      text-decoration: none;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      margin-left: 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      transition: color var(--transition), background var(--transition), border-color var(--transition);
+    }
+
+    .drawer-page-link:hover { color: var(--ink); background: var(--linen); }
+
+    .drawer-page-link.active {
+      color: var(--ink);
+      font-weight: 500;
+      background: var(--parchment);
+      border-left-color: var(--green);
+    }
+
     /* ─── Responsive ────────────────────────────────────────────────── */
     @media (max-width: 1100px) {
       #toc { display: none !important; }
@@ -615,6 +782,8 @@
     }
 
     @media (max-width: 720px) {
+      #hamburger { display: flex; }
+      #header-nav-row { display: none; }
       #subnav { display: none; }
       :root { --outer-px: 20px; --layout-max: 100%; }
     }
@@ -646,6 +815,11 @@
         <!-- moon icon: shown in light mode to switch to dark -->
         <svg id="icon-moon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <path d="M15.5 10.5A7 7 0 0 1 7.5 2.5a7 7 0 1 0 8 8z"/>
+        </svg>
+      </button>
+      <button id="hamburger" aria-label="Open navigation menu" aria-expanded="false">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M2 4.5h14M2 9h14M2 13.5h14"/>
         </svg>
       </button>
     </div>
@@ -685,6 +859,28 @@
   </aside>
 
 </div>
+
+<!-- ─── Mobile drawer ───────────────────────────────────────────────────────── -->
+<div id="mobile-backdrop" aria-hidden="true"></div>
+<nav id="mobile-drawer" aria-label="Navigation" aria-hidden="true">
+  <div id="mobile-drawer-header">
+    <a id="mobile-drawer-logo" href="#">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M17 7.5C17 5.29 15.21 3.5 13 3.5C10.79 3.5 9 5.29 9 7.5V17C9 18.66 10.34 20 12 20C13.66 20 15 18.66 15 17V9C15 8.45 14.55 8 14 8C13.45 8 13 8.45 13 9V17C13 17.28 12.78 17.5 12.5 17.5C12.22 17.5 12 17.28 12 17V7.5C12 6.4 12.9 5.5 14 5.5C15.1 5.5 16 6.4 16 7.5V17C16 19.21 14.21 21 12 21C9.79 21 8 19.21 8 17V9"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span id="mobile-drawer-logo-name">Paperclip</span>
+    </a>
+    <button id="mobile-drawer-close" aria-label="Close navigation menu">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M2 2l12 12M14 2L2 14"/>
+      </svg>
+    </button>
+  </div>
+  <div id="mobile-drawer-body">
+    <!-- accordion populated by JS -->
+  </div>
+</nav>
 
 <script>
 /* ─── Theme ─────────────────────────────────────────────────────────────── */
@@ -733,6 +929,12 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   });
 });
 
+/* ─── Mobile drawer events ──────────────────────────────────────────────── */
+document.getElementById('hamburger').addEventListener('click', openDrawer);
+document.getElementById('mobile-drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('mobile-backdrop').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
 async function init() {
   try {
@@ -745,6 +947,7 @@ async function init() {
   }
 
   buildSectionTabs();
+  buildMobileDrawer();
   buildFlatList();
 
   const hash = location.hash.slice(1);
@@ -766,6 +969,92 @@ function buildSectionTabs() {
       if (section.pages.length) loadPage(section.pages[0].file);
     });
     row.appendChild(btn);
+  });
+}
+
+/* ─── Mobile drawer ─────────────────────────────────────────────────────── */
+function buildMobileDrawer() {
+  const body = document.getElementById('mobile-drawer-body');
+  body.innerHTML = '';
+
+  navData.sections.forEach(section => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'drawer-section';
+    sectionEl.dataset.section = section.title;
+
+    const btn = document.createElement('button');
+    btn.className = 'drawer-section-btn';
+    btn.innerHTML = `<span>${escapeHtml(section.title)}</span>
+      <svg class="drawer-chevron" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M2.5 5l4.5 4 4.5-4"/>
+      </svg>`;
+    btn.addEventListener('click', () => {
+      const isOpen = sectionEl.classList.contains('is-open');
+      // Collapse all sections
+      body.querySelectorAll('.drawer-section').forEach(s => s.classList.remove('is-open'));
+      if (!isOpen) sectionEl.classList.add('is-open');
+    });
+
+    const pages = document.createElement('div');
+    pages.className = 'drawer-pages';
+
+    section.pages.forEach(page => {
+      const a = document.createElement('a');
+      a.className = 'drawer-page-link';
+      a.textContent = page.title;
+      a.dataset.file = page.file;
+      a.href = '#' + encodeURIComponent(page.file);
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        loadPage(page.file);
+        closeDrawer();
+      });
+      pages.appendChild(a);
+    });
+
+    sectionEl.appendChild(btn);
+    sectionEl.appendChild(pages);
+    body.appendChild(sectionEl);
+  });
+}
+
+function openDrawer() {
+  const drawer   = document.getElementById('mobile-drawer');
+  const backdrop = document.getElementById('mobile-backdrop');
+  const hamburger = document.getElementById('hamburger');
+  drawer.classList.add('is-open');
+  backdrop.classList.add('is-open');
+  drawer.setAttribute('aria-hidden', 'false');
+  hamburger.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  const drawer   = document.getElementById('mobile-drawer');
+  const backdrop = document.getElementById('mobile-backdrop');
+  const hamburger = document.getElementById('hamburger');
+  drawer.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+  drawer.setAttribute('aria-hidden', 'true');
+  hamburger.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+function updateMobileDrawerActiveState(sectionTitle, file) {
+  const body = document.getElementById('mobile-drawer-body');
+
+  // Update section button active style + ensure active section is expanded
+  body.querySelectorAll('.drawer-section').forEach(sectionEl => {
+    const isActive = sectionEl.dataset.section === sectionTitle;
+    sectionEl.querySelector('.drawer-section-btn').classList.toggle('active', isActive);
+    if (isActive && !sectionEl.classList.contains('is-open')) {
+      sectionEl.classList.add('is-open');
+    }
+  });
+
+  // Update page link active state
+  body.querySelectorAll('.drawer-page-link').forEach(link => {
+    link.classList.toggle('active', link.dataset.file === file);
   });
 }
 
@@ -844,6 +1133,9 @@ function setActiveState(file) {
   // Rebuild subnav for the active section if it changed
   const currentLabel = document.getElementById('subnav-section-label').textContent;
   if (currentLabel !== page.sectionTitle) buildSubnav(page.sectionTitle);
+
+  // Mobile drawer active state
+  updateMobileDrawerActiveState(page.sectionTitle, file);
 
   // Active subnav link
   document.querySelectorAll('.subnav-link').forEach(l => {

@@ -563,6 +563,51 @@
 
     .toc-item.level-3 .toc-link { padding-left: 22px; font-size: 12px; }
 
+    /* ─── Smooth theme transitions ─────────────────────────────────── */
+    body, #header, #subnav, #article, #toc { transition: background 0.25s, color 0.25s, border-color 0.25s; }
+
+    /* ─── Dark mode ─────────────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --white:      #0f1117;
+      --linen:      #13161e;
+      --parchment:  #181c27;
+      --stone:      #252a3a;
+      --stone-dark: #353c52;
+      --ink:        #e4e6f0;
+      --graphite:   #9ba3bf;
+      --ash:        #555d7a;
+      --void:       #f0f2ff;
+      --green:      #22c55e;
+      --mint:       rgba(34,197,94,0.1);
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+    }
+
+    [data-theme="dark"] #header-outer  { background: rgba(15,17,23,0.75); }
+    [data-theme="dark"] #header        { background: #0f1117; border-color: #252a3a; }
+    [data-theme="dark"] #article pre   { background: #0c0e14; }
+    [data-theme="dark"] body           { background: #0f1117; }
+
+    /* ─── Theme toggle button ───────────────────────────────────────── */
+    #theme-toggle {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ash);
+      flex-shrink: 0;
+      transition: color var(--transition), background var(--transition);
+    }
+
+    #theme-toggle:hover { color: var(--graphite); background: var(--linen); }
+    #theme-toggle svg   { width: 18px; height: 18px; }
+
     /* ─── Responsive ────────────────────────────────────────────────── */
     @media (max-width: 1100px) {
       #toc { display: none !important; }
@@ -592,6 +637,17 @@
         <div id="logo-divider"></div>
         <span id="logo-sub">User Guides</span>
       </a>
+      <button id="theme-toggle" aria-label="Toggle dark/light mode">
+        <!-- sun icon: shown in dark mode to switch to light -->
+        <svg id="icon-sun" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none">
+          <circle cx="9" cy="9" r="3.5"/>
+          <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M3.22 14.78l1.42-1.42M13.36 4.64l1.42-1.42"/>
+        </svg>
+        <!-- moon icon: shown in light mode to switch to dark -->
+        <svg id="icon-moon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M15.5 10.5A7 7 0 0 1 7.5 2.5a7 7 0 1 0 8 8z"/>
+        </svg>
+      </button>
     </div>
 
     <!-- Row 2: Section tabs -->
@@ -631,11 +687,51 @@
 </div>
 
 <script>
+/* ─── Theme ─────────────────────────────────────────────────────────────── */
+(function() {
+  const saved = localStorage.getItem('pc-guides-theme') || 'light';
+  document.documentElement.dataset.theme = saved;
+  const sun  = document.getElementById('icon-sun');
+  const moon = document.getElementById('icon-moon');
+  if (sun && moon) {
+    sun.style.display  = saved === 'dark' ? '' : 'none';
+    moon.style.display = saved === 'dark' ? 'none' : '';
+  }
+})();
+
 /* ─── State ─────────────────────────────────────────────────────────────── */
 let navData     = null;
 let allPages    = [];
 let currentFile = null;
 let tocObserver = null;
+
+/* ─── Screenshot src resolver ───────────────────────────────────────────── */
+function resolveScreenshotSrc(src) {
+  // src may be like "../images/dashboard/foo.png" or "images/dashboard/foo.png"
+  const match = src.match(/images\/([^/]+\/[^/]+\.png)$/);
+  if (!match) return src;
+  const theme = document.documentElement.dataset.theme || 'light';
+  return `screenshots/${theme}/${match[1]}`;
+}
+
+/* ─── Theme toggle wiring ───────────────────────────────────────────────── */
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const html   = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  const next   = isDark ? 'light' : 'dark';
+  html.dataset.theme = next;
+  localStorage.setItem('pc-guides-theme', next);
+  const sun  = document.getElementById('icon-sun');
+  const moon = document.getElementById('icon-moon');
+  if (sun && moon) {
+    sun.style.display  = next === 'dark' ? '' : 'none';
+    moon.style.display = next === 'dark' ? 'none' : '';
+  }
+  // Swap all visible screenshot srcs
+  document.querySelectorAll('#article img[data-screenshot]').forEach(img => {
+    img.src = resolveScreenshotSrc(img.dataset.screenshot);
+  });
+});
 
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
 async function init() {
@@ -826,6 +922,12 @@ function postProcessTabs(root) {
 
 function postProcessImages(root) {
   root.querySelectorAll('img').forEach(img => {
+    // Remap ../images/ paths to screenshots/{theme}/ and store original for theme swaps
+    const resolved = resolveScreenshotSrc(img.src);
+    if (resolved !== img.src) {
+      img.dataset.screenshot = img.src; // store original path
+      img.src = resolved;
+    }
     img.addEventListener('error', () => {
       const ph = document.createElement('div');
       ph.className = 'img-placeholder';

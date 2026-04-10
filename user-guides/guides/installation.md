@@ -23,8 +23,6 @@ Paperclip Desktop comes in two versions depending on your Mac's chip. If you're 
    - If it says **Apple M1**, **M2**, **M3**, or **M4** — you have Apple Silicon
    - If it says **Intel Core** — you have an Intel Mac
 
-![About This Mac dialog showing chip information](../images/desktop/about-this-mac.png)
-
 ---
 
 ## Step 2 — Download Paperclip Desktop
@@ -36,8 +34,6 @@ Go to the [Paperclip Desktop releases page](https://github.com/aronprins/papercl
 | Apple Silicon (M1/M2/M3/M4) | `Paperclip.Desktop-[version]-arm64.dmg` |
 | Intel | `Paperclip.Desktop-[version].dmg` |
 
-![GitHub releases page showing the available download files for Apple Silicon and Intel](../images/desktop/releases-page.png)
-
 > **Note:** The version number in the filename will match the latest release. If you see multiple `.dmg` files, the one with `arm64` in the name is for Apple Silicon. The one without is for Intel.
 
 ---
@@ -47,8 +43,6 @@ Go to the [Paperclip Desktop releases page](https://github.com/aronprins/papercl
 1. Open the `.dmg` file you downloaded — it will mount like a disk image and open a window
 2. Drag the **Paperclip** icon into the **Applications** folder
 
-![DMG installer window with Paperclip icon and Applications folder shortcut](../images/desktop/dmg-installer.png)
-
 That's the whole installation. You can eject the `.dmg` and move it to the trash once the drag is done.
 
 ---
@@ -56,8 +50,6 @@ That's the whole installation. You can eject the `.dmg` and move it to the trash
 ## Step 4 — Open Paperclip
 
 Open Paperclip from your Applications folder, or press **Cmd+Space** and type **Paperclip**.
-
-![Paperclip Desktop launcher showing the local/remote mode chooser](../images/desktop/launcher-screen.png)
 
 > **Warning:** The first time you open Paperclip, macOS may show a prompt saying it can't verify the developer. This is a standard macOS warning for apps downloaded outside the App Store. Click **Open** to proceed — Paperclip is safe to run.
 
@@ -85,8 +77,6 @@ Anthropic makes Claude — the AI that powers the `claude_local` adapter, which 
 4. Give it a name you'll recognise (e.g. "Paperclip")
 5. Copy the key — it starts with `sk-ant-`
 
-![Anthropic console showing the API Keys section with a Create Key button](../images/desktop/anthropic-console-api-keys.png)
-
 > **Warning:** Copy the key immediately. Anthropic only shows it once. If you lose it, you'll need to create a new one.
 
 Store it somewhere safe — you'll paste it into Paperclip when you set up your first agent.
@@ -101,8 +91,6 @@ OpenAI makes the models that power the `codex_local` adapter.
 4. Give it a name (e.g. "Paperclip") and click **Create secret key**
 5. Copy the key — it starts with `sk-`
 
-![OpenAI platform showing the API keys section](../images/desktop/openai-platform-api-keys.png)
-
 > **Warning:** Copy the key immediately. OpenAI only shows it once. If you lose it, you'll need to create a new one.
 
 <!-- /tabs -->
@@ -115,8 +103,6 @@ You don't need to paste your API key anywhere yet. You'll enter it when you set 
 
 When Paperclip Desktop opens, it asks how you want to connect:
 
-![Paperclip Desktop launcher showing Local and Remote mode options](../images/desktop/local-remote-chooser.png)
-
 **Local mode** runs a complete Paperclip instance directly on your Mac. Your agents run on your machine, all data stays local, and nothing is sent to an external server (beyond the API calls your agents make to Anthropic or OpenAI). This is the right choice when you're getting started.
 
 **Remote mode** connects the Desktop app to a Paperclip instance running on another machine — a team server, a cloud host, or a colleague's computer. You'll only need this if someone has already set up a shared Paperclip instance that you're connecting to.
@@ -124,8 +110,6 @@ When Paperclip Desktop opens, it asks how you want to connect:
 For now, choose **Local**. You can always connect to a remote instance later from the app's settings.
 
 After selecting Local, Paperclip finishes starting up and opens the dashboard. It will be empty — that's expected. You haven't created a company yet.
-
-![Paperclip dashboard after first launch — empty, waiting for a company to be created](../images/desktop/first-dashboard.png)
 
 ---
 

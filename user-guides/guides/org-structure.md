@@ -62,8 +62,6 @@ CEO
 
 The CEO breaks goals into high-level tasks for the CTO and CMO. They create subtasks for their own reports. Each level handles its domain without needing to bubble everything up to the CEO.
 
-![Org chart view showing a scaled team with CEO, CTO, CMO, and workers](../images/org/org-chart-scaled.png)
-
 > **Tip:** You don't have to build this out all at once. Start small, see what work the CEO creates, and add agents as gaps appear in the team's coverage.
 
 ---

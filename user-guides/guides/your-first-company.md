@@ -16,7 +16,7 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 1. **Click "New Company"**
 
-   When you first open Paperclip, the dashboard is empty. Look for the **New Company** button — it appears in the sidebar on the left, near the top.
+   When you first open Paperclip, you'll be taken into onboarding or see a start screen with a **New Company** button. Click that to begin.
 
    ![The Paperclip sidebar with the New Company button highlighted](../images/onboarding/sidebar-new-company-button.png)
 
@@ -35,9 +35,9 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    You can rename the company later from its settings, so don't overthink it.
 
-3. **Write your company goal**
+3. **Write your company goal (optional)**
 
-   This is the most important field in the whole form. The goal is the north star that every agent in your company can see. Every task the CEO creates, every strategy it proposes, every decision it makes — it all flows from this goal.
+   If you already know what this company should achieve, add that direction now. The goal is the north star that every agent in your company can see. Every task the CEO creates, every strategy it proposes, every decision it makes — it all flows from this goal.
 
    ![The goal field in the New Company modal with an example goal entered](../images/onboarding/goal-field.png)
 
@@ -51,21 +51,9 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    > **Tip:** Include a metric and a timeframe. "Build the #1 AI note-taking app at $1M ARR within 6 months" is a goal an agent can reason about. "Improve the product" is not.
 
-   You can update the goal at any time. If your priorities change, go to the company settings and revise it — the CEO will factor the new goal into its next strategy cycle.
+   You can update or add goals later from the **Goals** section. If your priorities change, revise the goal there and the CEO will factor it into its next strategy cycle.
 
-4. **Set a monthly budget**
-
-   The company budget is the maximum your whole organisation can spend in a calendar month across all agents. Once this limit is reached, all agents are automatically paused until the next month begins (or until you manually increase the budget).
-
-   ![The budget field showing the monthly dollar amount input](../images/onboarding/budget-field.png)
-
-   Individual agents will also each have their own smaller budgets — but the company budget is the overall ceiling that none of them can collectively exceed.
-
-   > **Warning:** Start conservative. For early experimentation, $50–100 per month is enough to run a CEO agent and one or two reports. You can always increase the budget later. It's much easier to raise a budget than to deal with an unexpectedly large bill.
-
-   The budget is shown in dollars. Spend is tracked per agent so you can see exactly where the money goes.
-
-5. **Save and continue**
+4. **Save and continue**
 
    Click **Create Company**. Paperclip creates the company and takes you to its dashboard.
 

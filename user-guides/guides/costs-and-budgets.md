@@ -36,12 +36,9 @@ Paperclip enforces budgets automatically, in two stages:
 $0 ─────────────────────── 80% ──────── 100%
    Normal operation         ⚠️              🛑
                           Warning        Auto-paused
-                        (focus on        (no more
-                        critical         heartbeats)
-                          tasks)
 ```
 
-**At 80%:** The agent is warned. From this point, it is instructed to focus only on critical-priority tasks and avoid taking on new work. It continues running.
+**At 80%:** Paperclip records a warning so you can intervene before the hard stop. The agent continues running.
 
 **At 100%:** The agent is automatically paused. No further heartbeats are triggered. The agent stops all activity until either you increase its budget or the calendar month resets.
 
@@ -51,9 +48,9 @@ An auto-paused agent doesn't lose its work — any tasks it had in progress rema
 
 ## Setting a Company Budget
 
-1. **Open your company's settings**
+1. **Open the Costs page**
 
-   Click the company name in the left sidebar, then click **Settings** (usually a gear icon or found in the company menu).
+   Company-wide budget controls live on the **Costs** page, under the **Budgets** tab.
 
    ![Company settings page showing the Monthly Budget field](../images/costs/company-budget-field.png)
 
@@ -71,9 +68,9 @@ An auto-paused agent doesn't lose its work — any tasks it had in progress rema
 
 Each agent should have its own budget. This limits exposure from any single agent and makes your cost picture easier to read.
 
-1. **Open the agent's settings**
+1. **Open the agent's Budget tab**
 
-   Click the agent's name in the sidebar or in the Agents list. On the agent detail page, click **Edit** or **Settings**.
+   Click the agent's name in the sidebar or in the Agents list, then open **Budget** on the agent detail page.
 
    ![Agent budget field in the agent configuration panel](../images/costs/agent-budget-field.png)
 
@@ -105,7 +102,7 @@ Check this panel whenever you open Paperclip. A bar that has jumped unexpectedly
 
 ### From the Agent Detail Page
 
-Click on any agent, then click **Costs** or **Run History** to see a detailed breakdown per heartbeat run — including model used, token counts, and cost per run.
+Click on any agent, then open **Runs** to see per-run spend and **Budget** to see the current cap and utilization.
 
 ![Per-run cost detail showing model, input tokens, output tokens, and dollar cost for each heartbeat](../images/costs/per-run-cost-detail.png)
 
@@ -143,7 +140,7 @@ For reference, here's what to expect at each stage:
 
 ![Agent budget bar at 80% — amber warning state](../images/costs/agent-budget-80pct-warning.png)
 
-*Warning threshold reached — the agent will now focus only on critical tasks.*
+*Warning threshold reached — this is your signal to intervene before the hard stop.*
 
 ![Agent budget bar at 100% — red, agent shown as paused](../images/costs/agent-budget-100pct-paused.png)
 

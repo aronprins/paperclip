@@ -5,7 +5,7 @@ There are two ways to install Paperclip. Choose the one that fits how you work:
 - **Desktop App** — a regular macOS application. Download it, open it, done. No terminal, no developer tools, no configuration files. This is the right choice if you're not a developer.
 - **Terminal** — install and run Paperclip from the command line. For developers who want full control over configuration and hosting.
 
-Both paths end up in exactly the same place: a running Paperclip instance with the full dashboard.
+Both paths end up in the same place: a running Paperclip instance and the onboarding flow where you create your first company, first agent, and first piece of work.
 
 ---
 
@@ -79,7 +79,7 @@ Anthropic makes Claude — the AI that powers the `claude_local` adapter, which 
 
 > **Warning:** Copy the key immediately. Anthropic only shows it once. If you lose it, you'll need to create a new one.
 
-Store it somewhere safe — you'll paste it into Paperclip when you set up your first agent.
+Store it somewhere safe — you'll add it to Paperclip as an environment variable or secret when you set up your first agent.
 
 <!-- tab: OpenAI -->
 
@@ -95,7 +95,7 @@ OpenAI makes the models that power the `codex_local` adapter.
 
 <!-- /tabs -->
 
-You don't need to paste your API key anywhere yet. You'll enter it when you set up your first agent in the next guide.
+You don't need to enter the key into Paperclip yet. You'll wire it up when you configure your first agent in the next guide.
 
 ---
 
@@ -109,7 +109,7 @@ When Paperclip Desktop opens, it asks how you want to connect:
 
 For now, choose **Local**. You can always connect to a remote instance later from the app's settings.
 
-After selecting Local, Paperclip finishes starting up and opens the dashboard. It will be empty — that's expected. You haven't created a company yet.
+After selecting Local, Paperclip finishes starting up and takes you into onboarding (or a start screen with a **New Company** button). That's expected. You haven't created a company yet.
 
 ---
 
@@ -163,7 +163,7 @@ This single command handles everything: it downloads Paperclip, creates a config
 
 Paperclip opens automatically in your browser. If it doesn't, navigate to [http://localhost:3100](http://localhost:3100).
 
-You'll land on an empty dashboard. You haven't created a company yet — that's the next step.
+You'll land in Paperclip ready to start onboarding. You haven't created a company yet — that's the next step.
 
 > **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal. For persistent background runs, see the [advanced deployment docs](../../../docs/deploy/overview.md).
 
@@ -175,6 +175,6 @@ You'll land on an empty dashboard. You haven't created a company yet — that's 
 
 ## You're in
 
-Paperclip is running. The dashboard is empty — that's where you start. The next guide walks you through creating your first company, setting its goal, and getting it ready for agents.
+Paperclip is running. The next guide walks you through creating your first company, setting a goal if you have one ready, and getting it ready for agents.
 
 [Create Your First Company →](your-first-company.md)

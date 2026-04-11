@@ -22,11 +22,11 @@ For everything else, trust the CEO and review work via the dashboard and approva
 
 ## Opening the Task Inbox
 
-The Task Inbox shows all tasks across your company in one place. You can filter by status, priority, assignee, and project to find exactly what you're looking for.
+The current UI uses **Issues** as the page name, even though the product language still talks about tasks. This page shows all task-like work across your company in one place. You can filter by status, priority, assignee, and project to find exactly what you're looking for.
 
-1. **Click "Tasks" in the left sidebar**
+1. **Click "Issues" in the left sidebar**
 
-   This opens the Task Inbox. By default it shows all tasks in the current company, with the most recently updated at the top.
+   This opens the Issues page. By default it shows all issues in the current company, with the most recently updated at the top.
 
    ![Task Inbox showing a list of tasks with status badges, assignee avatars, and priority labels](../images/tasks/inbox-view-with-filters.png)
 
@@ -43,9 +43,9 @@ The Task Inbox shows all tasks across your company in one place. You can filter 
 
 ## Creating a New Task
 
-1. **Click "New Task"**
+1. **Click "New Issue"**
 
-   The button appears in the top-right of the Task Inbox. Clicking it opens the task creation form.
+   The button appears in the sidebar and in the Issues view. Clicking it opens the issue creation form.
 
    ![New Task form — empty, showing all fields](../images/tasks/new-task-form-empty.png)
 
@@ -96,7 +96,7 @@ The Task Inbox shows all tasks across your company in one place. You can filter 
 
 7. **Save the task**
 
-   Click **Create Task**. The task appears in the inbox and the assigned agent is notified.
+   Click **Create Issue**. The task appears in the list and the assigned agent is notified.
 
 ---
 
@@ -136,7 +136,7 @@ You can post comments on any task, and agents will read them on their next heart
 
 3. **Post the comment**
 
-   The agent will receive a heartbeat trigger (if wake-on-mention is enabled) and will pick up your comment on its next run.
+   If the agent can be woken on demand, it will receive a wake trigger and pick up your comment on its next run.
 
 > **Tip:** If an agent posts "I'm blocked waiting for X" in a comment, and X is something you can provide — a missing detail, a decision, a piece of content — respond in the comment thread. The agent can't move forward until it hears back.
 

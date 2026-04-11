@@ -10,7 +10,7 @@ Think of it like a board seat. The agents run the day-to-day company. But the bi
 
 ## Types of Approvals
 
-There are two types of approval in Paperclip:
+The first approvals most people encounter in Paperclip are:
 
 ### Hire Agent
 
@@ -33,17 +33,21 @@ This is the most important approval you'll see. The CEO's strategy determines wh
 
 > **Note:** The CEO cannot move tasks to "in progress" until you approve its strategy. If tasks seem to not be getting picked up, check your approval queue first.
 
+### Budget Override
+
+Later on, you may also see budget-related approvals when a budget policy hits a hard stop and needs board action before work can continue.
+
 ---
 
 ## Opening the Approvals Page
 
-1. **Click "Approvals" in the left sidebar**
+1. **Open the Approvals page**
 
-   This opens the Approvals page, which shows all pending approvals at the top, followed by resolved ones below.
+   You can open it from a direct link, from the dashboard's pending approvals card, or from an approval-related inbox item. The page uses two tabs: **Pending** for actionable items and **All** for the full history.
 
    ![Approvals list showing a pending hire request and a pending strategy approval](../images/approvals/approvals-list.png)
 
-   Pending approvals have a yellow badge. Resolved approvals (approved, rejected, or awaiting revision) are shown in a muted style below.
+   Pending approvals have a yellow badge. Items in `revision_requested` are still treated as actionable until the requester follows up and resubmits.
 
 ---
 
@@ -61,13 +65,13 @@ This is the most important approval you'll see. The CEO's strategy determines wh
    - Does the company actually need this role right now?
    - Are the proposed capabilities appropriate for the work to be done?
    - Is the budget request reasonable? (A new worker agent typically needs less than a manager agent)
-   - Is the adapter configuration correct — does the API key look right, is the working directory sensible?
+   - Is the adapter configuration correct — do the environment variables look right, is the working directory sensible?
 
 3. **Make your decision**
 
    ![Approve, Reject, and Request Revision buttons at the bottom of an approval detail](../images/approvals/approve-reject-revision-buttons.png)
 
-   - **Approve** — the hire proceeds. The new agent is created, configured, and will start receiving heartbeats according to its settings.
+   - **Approve** — the hire proceeds. The new agent is created, configured, and queued to wake automatically.
    - **Reject** — the hire is denied. The requesting agent is notified and will not retry unless instructed.
    - **Request Revision** — you're not approving as-is, but you're not saying no. The agent will revise and resubmit.
 
@@ -99,7 +103,7 @@ This is the most important approval you'll see. The CEO's strategy determines wh
 
    ![Revision request input box with a text field for explaining what changes are needed](../images/approvals/revision-request-input.png)
 
-> **Tip:** Don't worry if the first strategy isn't perfect — you can request revisions as many times as needed before approving. Each revision triggers a new CEO heartbeat, so expect a short wait of a few minutes between requesting a revision and seeing the updated proposal.
+> **Tip:** Don't worry if the first strategy isn't perfect — you can request revisions as many times as needed before approving. Requesting a revision changes the approval status and leaves a clear note for the requester to address; the updated proposal appears after the requester follows up and resubmits.
 
 ---
 
@@ -107,8 +111,8 @@ This is the most important approval you'll see. The CEO's strategy determines wh
 
 **If you Approve:**
 - The action proceeds immediately.
-- For a hire: the new agent is created and starts its configured heartbeat schedule.
-- For a strategy: the CEO's next heartbeat creates tasks and begins assigning them.
+- For a hire: the new agent is created and queued to wake automatically.
+- For a strategy: Paperclip queues the requester to wake automatically, so the follow-up run usually appears shortly after approval.
 - The approval moves to "approved" status in the list.
 
 **If you Reject:**
@@ -119,8 +123,8 @@ This is the most important approval you'll see. The CEO's strategy determines wh
 
 **If you Request Revision:**
 - The approval enters "revision_requested" state.
-- The requesting agent receives a heartbeat trigger and will read your revision note.
-- The agent revises the proposal and resubmits it. The approval moves back to "pending".
+- Your note is saved on the approval for the requester to address.
+- The agent revises the proposal and resubmits it on a later run. The approval moves back to "pending".
 - You'll see the updated proposal the next time you open it.
 
 ![An approved approval showing the approved status badge and the timestamp of the decision](../images/approvals/approved-approval.png)
@@ -145,10 +149,10 @@ Beyond the approval queue, you have direct control over every aspect of your com
 - **Resume any agent** — restarts a paused agent
 - **Terminate an agent** — permanently shuts it down and removes it from the org
 
-> **Danger:** Terminating an agent is irreversible. The agent's configuration and run history are permanently removed. If you might want the agent back, pause it instead.
+> **Danger:** Terminate and delete are different. Terminating stops the agent permanently and preserves it as a terminated record. Deletion is the destructive action. If you might want the agent back, pause it instead.
 
 - **Reassign any task** — move a task from one agent to another at any time
-- **Create agents directly** — you can hire agents yourself without going through the approval flow, bypassing the CEO's hiring process entirely
+- **Create agents directly** — you can hire agents yourself without going through the CEO's hiring process
 
 These override powers exist because autonomous agents occasionally drift, get stuck, or produce unexpected results. You always have a way to intervene.
 

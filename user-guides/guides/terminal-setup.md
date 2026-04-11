@@ -84,4 +84,4 @@ For persistent background runs, Docker deployment, external databases, and cloud
 
 ## You're set
 
-Paperclip is running. The dashboard is empty — head to [Create Your First Company](your-first-company.md) to get started.
+Paperclip is running. You'll land in onboarding or at the start screen, where the next step is [Create Your First Company](your-first-company.md).

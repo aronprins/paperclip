@@ -71,7 +71,7 @@ Review each hire request on its merits:
 - Is the proposed budget reasonable for that agent's workload?
 - Does the agent report to the right manager?
 
-If anything looks off, request a revision. If it looks good, approve. Once you approve, Paperclip creates the agent and triggers a heartbeat for them automatically — they'll be up and running within their next heartbeat window.
+If anything looks off, request a revision. If it looks good, approve. Once you approve, Paperclip creates the agent and queues it to wake automatically.
 
 > **Warning:** Approving a hire creates a new agent and starts spending budget. Only approve hire requests when you're ready for the agent to start working.
 
@@ -131,7 +131,7 @@ If you've set a goal but nothing seems to be happening, work through these commo
 |---|---|
 | **Approval queue** | Is there a strategy approval waiting for your review? This is the most common reason — the CEO has submitted a plan and is waiting for sign-off. |
 | **Goal is set** | Go to the Goals section of your company. If no goal exists, the CEO has nothing to work from. |
-| **CEO heartbeat** | Is the CEO's heartbeat enabled? Go to the CEO's detail page and check that the heartbeat toggle is on and that recent runs appear in the run history. |
+| **CEO heartbeat** | Is the CEO's heartbeat enabled? Go to the CEO's detail page and check that the heartbeat toggle is on and that recent runs appear in the **Runs** tab. |
 
 ### CEO isn't assigning to reports
 
@@ -139,7 +139,7 @@ If you've set a goal but nothing seems to be happening, work through these commo
 |---|---|
 | **Reports have heartbeats** | Go to each agent's detail page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
 | **Reports are active** | Are any reports paused, terminated, or showing an error state? The CEO won't assign to agents it can't reach. |
-| **CEO's budget** | At 80% of its monthly budget, the CEO focuses only on critical tasks and may stop delegating lower-priority work. At 100%, it auto-pauses entirely. |
+| **CEO's budget** | At 80% of its monthly budget, Paperclip warns you. At 100%, it auto-pauses entirely. |
 
 ### CEO is assigning everything to itself
 
@@ -147,7 +147,7 @@ This is expected behaviour when you have no other active reports. Hire a CTO or 
 
 ### Strategy was approved but nothing happened
 
-After you approve a strategy, the CEO needs to wake up on a heartbeat to start creating tasks. Depending on the heartbeat schedule, this could take up to one heartbeat interval. If you want things to start immediately, go to the CEO's detail page and click **Invoke** to trigger a manual heartbeat.
+After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page and click **Run Heartbeat**.
 
 ### A specific task is stuck
 

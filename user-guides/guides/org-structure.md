@@ -76,9 +76,9 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
    ![Agents list page showing the New Agent button](../images/agents/agents-list-empty.png)
 
-2. **Set the name and role**
+2. **Set the name, title, and role**
 
-   Give the agent a clear name (e.g. "Sam — CTO") and a role title (e.g. `cto` or `head_of_engineering`). The role title helps the CEO understand what this agent is responsible for when assigning work.
+   Give the agent a clear name (e.g. "Sam"), a title (e.g. "CTO"), and choose the closest role. The role helps the CEO understand what this agent is responsible for when assigning work.
 
    ![New agent form with name and role fields](../images/agents/new-agent-name-role.png)
 
@@ -88,11 +88,11 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
    ![New agent form showing the Reports to dropdown with CEO selected](../images/agents/new-agent-reports-to-field.png)
 
-4. **Choose an adapter, set a budget, and save**
+4. **Choose an adapter and save**
 
-   Configure the adapter (see [Agent Adapters](agent-adapters.md) if you need help with this step). Set a monthly budget. Click **Save**.
+   Configure the adapter (see [Agent Adapters](agent-adapters.md) if you need help with this step). Click **Create agent**.
 
-   The new agent now appears in the org chart under the CEO, and the CEO will start considering them when delegating work.
+   The new agent now appears in the org chart under the CEO, and the CEO will start considering them when delegating work. You can set the agent's budget afterward on its **Budget** tab.
 
 ---
 
@@ -105,7 +105,7 @@ For example, to add a Backend Engineer who reports to your CTO:
 1. Click **New Agent**
 2. Name: "Jordan — Backend Engineer", role: `backend_engineer`
 3. **Reports to**: select your CTO agent
-4. Configure adapter and budget, then **Save**
+4. Configure the adapter, then **Create agent**
 
 The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, the blocker escalates automatically up to the CTO.
 
@@ -121,7 +121,7 @@ From the agent's detail page, click **Configuration**, then change the **Reports
 
 ## Viewing the org chart
 
-Click **Agents** in the left sidebar, then select the **Org Chart** view (next to the list view toggle at the top). You'll see a visual tree of all your agents with their current status shown inline.
+Click **Org** in the left sidebar. You'll see a visual tree of all your agents with their current status shown inline.
 
 ![Org chart view showing the full reporting hierarchy with agent status indicators](../images/org/org-chart-small-team.png)
 

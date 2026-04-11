@@ -2,7 +2,7 @@
 
 When an agent picks up a task that involves working with code or files, it needs a place to do that work — a folder with the right code checked out at the right state, ready for the agent to read, edit, and run. That's what an execution workspace is: a snapshot of a project's working directory, tied to a specific task run.
 
-Execution workspaces exist so that multiple agents can work on the same project simultaneously without stepping on each other. Each agent gets its own isolated copy — its own branch, its own folder, its own running services — so work in one workspace doesn't accidentally break another.
+Execution workspaces exist so that multiple agents can work on the same project simultaneously without stepping on each other. When a project is configured for isolated work, agents can get their own copy — their own branch, folder, and runtime context — so work in one workspace doesn't accidentally break another.
 
 ---
 
@@ -13,9 +13,9 @@ Every execution workspace is linked to a project. The project defines the base c
 When a task runs, Paperclip resolves which execution workspace to use for that run:
 
 1. **The heartbeat fires** and the agent picks up a task
-2. **Paperclip resolves the workspace** — creating a new one, or reusing an existing one, depending on your settings
+2. **Paperclip resolves the workspace** — creating a new one, reusing an existing one, or sticking with the project default, depending on your settings
 3. **The agent receives the workspace path** and works within it
-4. **The workspace persists** after the run — the agent's changes, branch state, and running services are all retained until you archive it
+4. **The workspace persists** after the run if you're using an isolated or reusable workspace mode
 
 ![Execution workspace list showing multiple isolated workspaces for a project](../images/org/execution-workspaces-list.png)
 
@@ -23,7 +23,7 @@ When a task runs, Paperclip resolves which execution workspace to use for that r
 
 ## Workspace modes
 
-When a task is assigned or created, you can choose how its workspace is handled:
+When isolated workspaces are enabled for a project, you can choose how an issue's workspace is handled:
 
 **Isolated (new workspace)**
 Paperclip creates a fresh working copy for this task — a new git worktree at a new path, branched from the base. The agent works here without any risk of interfering with other workspaces. When the task is done, you can review and merge the branch, then archive the workspace.
@@ -33,10 +33,10 @@ This is the right choice for tasks that make code changes — features, fixes, e
 **Reuse existing workspace**
 The task shares a workspace with another task or a previous run. Multiple tasks can share one workspace so they can work against the same branch and see the same running services.
 
-This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple tasks working against the same feature branch.
+This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple issues working against the same feature branch.
 
 **Project primary workspace**
-The task runs in the project's primary checkout, not an isolated copy. Use this carefully — changes made here affect the main branch directly.
+The task runs in the project's primary checkout, not an isolated copy. Use this carefully — changes made here affect the shared working copy directly.
 
 ---
 
@@ -67,7 +67,7 @@ The inheritance answers the question "how do I run this?" — but the actual run
 
 ## Workspace lifecycle
 
-Execution workspaces are durable — they persist until you explicitly archive them. This means:
+Execution workspaces are durable — they persist until you explicitly archive or tear them down. This means:
 
 - The agent's branch state, uncommitted changes, and any running services survive across heartbeats
 - Multiple heartbeats can pick up the same workspace and continue from where the last one left off
@@ -76,7 +76,7 @@ Execution workspaces are durable — they persist until you explicitly archive t
 When you're done with a workspace:
 1. Review the agent's work (merge the branch, approve changes, etc.)
 2. Click **Archive** on the workspace
-3. Paperclip stops any running services and cleans up the workspace directory
+3. Paperclip cleans up the workspace according to its mode and project settings
 
 > **Warning:** Archiving a workspace that has unmerged changes or uncommitted work means that work is gone. Make sure you've reviewed and merged anything you want to keep before archiving.
 
@@ -84,7 +84,7 @@ When you're done with a workspace:
 
 ## When you'll encounter this
 
-For most board operators, execution workspaces are something that happens in the background. You don't need to configure them for every task — the defaults work fine for straightforward agents doing straightforward work.
+For most board operators, execution workspaces are something that happens in the background. You don't need to configure them for every issue — the defaults work fine for straightforward agents doing straightforward work.
 
 You'll want to pay closer attention when:
 - You have multiple agents working on the same codebase and need to avoid conflicts

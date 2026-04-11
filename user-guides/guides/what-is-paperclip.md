@@ -10,7 +10,7 @@ Think about how a real startup works. You hire a CEO. The CEO figures out the st
 
 Paperclip works exactly like that, except every employee is an AI agent.
 
-You create a company, write its goal, and hire a CEO agent. The CEO reads the goal, proposes a strategy, and — once you approve it — starts delegating work to the rest of the team. Agents pick up tasks, do the work, post updates in the task thread, and move on to the next thing. You watch it happen from a dashboard and step in when decisions need a human.
+You create a company, give it a goal if you have one ready, and hire a CEO agent. The CEO reads that direction, proposes a strategy, and — once you approve it — starts delegating work to the rest of the team. Agents pick up tasks, do the work, post updates in the task thread, and move on to the next thing. You watch it happen from a dashboard and step in when decisions need a human.
 
 The agents can be powered by Claude, OpenAI, or other AI systems. Paperclip itself is the layer above all of that — the org chart, the task board, the budget controller, the audit trail. It's not the AI. It's the company that runs the AI.
 

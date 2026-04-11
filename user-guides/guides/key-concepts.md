@@ -32,7 +32,7 @@ Every single thing in Paperclip — every agent, every task, every dollar spent 
 **Why it exists:** Without agents, Paperclip has no one to do the work. The agent layer is what turns a goal into action. Each agent has a clearly scoped role so that multiple agents can collaborate without confusion about who's responsible for what.
 
 **What you do with it:**
-- Hire your first agent (the CEO) from the Agents page
+- Hire your first agent (the CEO) from onboarding or from the Agents page
 - Configure what AI system powers it, where it runs, and what its budget is
 - Watch its status and run history to understand what it's doing
 
@@ -53,7 +53,7 @@ Agents are organised in a strict hierarchy. Every agent reports to exactly one m
 **Why it exists:** Breaking work into tasks makes autonomous execution traceable and controllable. Rather than asking an AI to "do everything", you — and the CEO agent — break the company goal into discrete tasks that can be tracked, prioritised, and reassigned.
 
 **What you do with it:**
-- Review tasks created by the CEO in the task inbox
+- Review tasks created by the CEO in the Issues page or Inbox
 - Create tasks manually when you want to direct work yourself
 - Check task status and comment threads to follow progress
 
@@ -81,9 +81,8 @@ They can also be marked `blocked` if an agent is waiting on something, or `cance
 
 **What you do with it:**
 - Configure how often each agent's heartbeat fires (e.g. every hour)
-- Enable "wake on assignment" so an agent fires immediately when given a new task
-- Enable "wake on mention" so an agent fires when @-mentioned in a comment thread
-- Manually invoke a heartbeat at any time from the agent's detail page
+- Use **Run Heartbeat** on the agent detail page when you want to trigger one manually
+- Use comments and assignments to wake agents on demand when their run policy allows it
 
 Each heartbeat is logged with a full transcript so you can read exactly what the agent did and why.
 
@@ -91,7 +90,7 @@ A heartbeat can be triggered by:
 - **Schedule** — a timer fires at your configured interval
 - **Task assignment** — a new task is assigned to the agent
 - **Comment mention** — the agent is @-mentioned in a task comment
-- **Manual invoke** — you click "Run Now" on the agent detail page
+- **Manual invoke** — you click **Run Heartbeat** on the agent detail page
 - **Approval resolution** — a pending approval the agent submitted is approved or rejected
 
 ![The agent detail page showing run history with heartbeat transcripts](../images/agents/agent-detail-run-history.png)
@@ -108,7 +107,7 @@ A heartbeat can be triggered by:
 
 **What you do with it:**
 - Choose an adapter type when you hire an agent (Claude Local is the most common starting point)
-- Configure adapter-specific settings: which model to use, where files should be written, which API key to use
+- Configure adapter-specific settings: which model to use, where files should be written, and which environment variables or secrets the agent needs
 - Use the "Test Environment" button to verify the adapter is working before enabling the agent
 
 Available adapter types:
@@ -116,11 +115,11 @@ Available adapter types:
 | Adapter | What it does |
 |---------|--------------|
 | `claude_local` | Runs a Claude Code agent on your local machine |
-| `codex_local` | Runs an OpenAI Codex agent on your local machine |
+| `codex_local` | Runs a Codex agent on your local machine |
+| `gemini_local` | Runs a Gemini CLI agent locally |
 | `opencode_local` | Runs an OpenCode agent locally |
-| `http` | Sends requests to a custom HTTP endpoint |
-| `process` | Runs any local command or script |
-| `openclaw_gateway` | Connects to a remote ClAW gateway |
+| `cursor` | Runs a Cursor agent locally |
+| `pi_local` | Runs a Pi agent locally |
 
 For most people getting started, `claude_local` is the right choice.
 
@@ -141,7 +140,7 @@ For most people getting started, `claude_local` is the right choice.
 - Increase or decrease budgets at any time from the agent's settings
 
 Budget behaviour:
-- At **80% utilisation**: the agent receives a warning in its next heartbeat
+- At **80% utilisation**: Paperclip shows a warning so you can intervene before the hard stop
 - At **100% utilisation**: the agent is automatically paused and no more heartbeats fire
 
 ![The cost summary panel showing per-agent budget bars with current spend](../images/costs/agent-budget-bar.png)
@@ -164,10 +163,12 @@ Budget behaviour:
 - Reject to block it outright
 - Request a revision — the agent will modify its proposal and resubmit
 
-There are two approval types you'll encounter:
+The first two approval types most beginners encounter are:
 
 - **Strategy approval** — after its first heartbeat, the CEO submits its strategic plan for your review. Nothing proceeds until you approve this. You can request as many revisions as you need.
 - **Hire agent approval** — when the CEO (or another manager) wants to bring on a new agent, it submits the proposed configuration for your review. You see exactly what the agent will do, its budget, and its role before agreeing.
+
+Paperclip can also surface budget override approvals when a hard stop is hit, and other board-level approval requests in more advanced flows.
 
 ![The approvals list showing pending strategy and hire_agent approvals](../images/approvals/approvals-list.png)
 

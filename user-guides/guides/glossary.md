@@ -12,7 +12,7 @@ For deeper explanations of the core concepts, see [Key Concepts](key-concepts.md
 
 **Agent** — An AI "employee" in your company. An agent isn't just a model call — it's a full configuration that includes a role, a manager, a budget, and an adapter that defines how it runs. Agents are organised in a hierarchy where every agent reports to exactly one manager (except the CEO).
 
-**Approval** — A governance checkpoint that pauses an action and asks the board operator (you) to review and sign off before it proceeds. There are two types: `strategy` (the CEO's proposed plan) and `hire_agent` (a request to hire a new agent). Approvals can be approved, rejected, or sent back for revision.
+**Approval** — A governance checkpoint that pauses an action and asks the board operator (you) to review and sign off before it proceeds. The most common beginner-facing approvals are the CEO's strategy proposal and `hire_agent`, but Paperclip can also surface budget override approvals and other board-level requests. Approvals can be approved, rejected, or sent back for revision.
 
 **Atomic checkout** — The mechanism that prevents two agents from working on the same task simultaneously. When an agent moves a task to `in_progress`, it claims exclusive ownership. If another agent tries to claim the same task at the same moment, one of them is turned away.
 
@@ -22,7 +22,7 @@ For deeper explanations of the core concepts, see [Key Concepts](key-concepts.md
 
 **Board Operator** — The human who owns and manages the company in Paperclip. That's you. As board operator, you set the company goal, review approvals, manage budgets, and have full override power over any agent or task. You're the founder, the board, and the ultimate authority.
 
-**Budget** — A monthly spending cap, enforced automatically. Budgets exist at two levels: the company budget (ceiling for the entire organisation) and per-agent budgets (each agent's individual monthly limit). At 80% utilisation an agent is warned; at 100% it is auto-paused. Budgets are displayed in dollars in the UI.
+**Budget** — A monthly spending cap, enforced automatically. Budgets exist at two levels: the company budget (ceiling for the entire organisation) and per-agent budgets (each agent's individual monthly limit). At 80% utilisation Paperclip warns you; at 100% it hard-stops the agent until you raise the budget or the month resets. Budgets are displayed in dollars in the UI.
 
 ---
 
@@ -32,7 +32,7 @@ For deeper explanations of the core concepts, see [Key Concepts](key-concepts.md
 
 **Checkout** — See "Atomic checkout". Also used informally to describe the act of an agent claiming a task by moving it to `in_progress`.
 
-**Comment thread** — Every task has a comment thread where agents post updates as they work: what they did, what's blocked, and what they plan next. As board operator, you can read these threads at any time. You can also post your own comments and @-mention agents to trigger their heartbeat.
+**Comment thread** — Every task has a comment thread where agents post updates as they work: what they did, what's blocked, and what they plan next. As board operator, you can read these threads at any time. You can also post your own comments and @-mention agents to wake them when their run policy allows it.
 
 **Company** — The top-level container for everything in Paperclip. A company has a goal, a team of agents, a task board, and a budget. One Paperclip instance can run multiple separate companies at the same time.
 
@@ -96,7 +96,7 @@ For deeper explanations of the core concepts, see [Key Concepts](key-concepts.md
 
 ## S
 
-**Skill** — A pre-built capability that an agent can be given. Skills extend what an agent can do beyond its base model — for example, a skill might give an agent the ability to search the web, read from a database, or call a specific API. Skills are configured at the adapter level.
+**Skill** — A reusable instruction or capability package stored in the company skill library and attached to the agents that should use it. Skills extend what an agent can do beyond its base model — for example, a skill might give an agent a review checklist, a deployment procedure, or a specific workflow.
 
 **Strategy** — The CEO agent's initial plan for achieving the company goal. After its first heartbeat, the CEO produces a strategy and submits it as an approval for the board to review. The strategy typically includes proposed projects, initial tasks, and an outline of the team structure it intends to build. Work cannot begin until the strategy is approved.
 

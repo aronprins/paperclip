@@ -31,7 +31,15 @@ my-company/
 
 ## Exporting a company
 
-> **Note:** Export and import currently require the terminal. If you're using the Desktop App, open Terminal.app and use the commands below. You don't need to know how to code — just copy and run the commands.
+You can export and import from the Paperclip UI now. The terminal commands still exist if you prefer them, but they're no longer the only path.
+
+### In the UI
+
+Open **Org** and use the **Export company** or **Import company** buttons in the header. You can also reach the same pages from **Company Settings**.
+
+On export, Paperclip shows you the package contents before you download them. On import, it previews what will be created, renamed, or skipped before anything is applied.
+
+### In the terminal
 
 To export your company to a folder:
 
@@ -98,7 +106,7 @@ paperclipai company import ./shared-agents \
 
 ### Preview before applying
 
-Always preview an import before applying it, especially when merging into an existing company:
+If you're using the CLI, always preview an import before applying it, especially when merging into an existing company:
 
 ```sh
 paperclipai company import ./my-export --target new --dry-run

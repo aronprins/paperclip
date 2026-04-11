@@ -31,7 +31,7 @@ Each record includes:
 
 The Activity Log is available from the left sidebar. It opens to a chronological feed of all events, most recent first.
 
-Each row in the feed shows the actor's name, what they did, and when. Clicking any row opens the full detail for that event — useful when you want to see exactly what changed and what the values were before and after.
+Each row in the feed shows the actor's name, what they did, and when. Clicking a row jumps you to the related issue, approval, agent, project, goal, or run — useful when you want to inspect the thing that changed.
 
 ![Activity Log detail view for a single event, showing actor, action, before/after values, and timestamp](../images/activity/activity-log-full.png)
 
@@ -41,19 +41,12 @@ Each row in the feed shows the actor's name, what they did, and when. Clicking a
 
 ## Filtering
 
-When you're looking for something specific, use the filters at the top of the Activity Log. Without filtering, a busy company can produce dozens of events per hour.
+When you're looking for something specific, use the filter at the top of the Activity page. In the current UI, that filter narrows the list by entity type.
 
 ![Activity Log with the filter bar open, showing options for agent, entity type, and time range](../images/activity/activity-filters.png)
 
-**Filter by agent** — shows only events where a specific agent was the actor. Use this to audit what a particular agent has been doing, or to understand why it's in its current state.
-
 **Filter by entity type** — narrow to a specific category of events: tasks only, agents only, approvals only, or budget events only.
-
-**Filter by time range** — zoom in on a specific window (the last hour, today, this week, or a custom date range).
-
-Filters can be combined. "All events by the CEO agent in the last 24 hours" is a useful filter when you're trying to understand what the CEO did after a strategy was approved.
-
-![Activity Log filtered to show only events from the CEO agent](../images/activity/activity-filtered-by-agent.png)
+![Activity Log filtered to show one category of events](../images/activity/activity-filtered-by-agent.png)
 
 ---
 
@@ -65,25 +58,25 @@ The Activity Log is most valuable when something has gone wrong and you need to 
 
 **"Why did a task get reassigned away from the agent I chose?"**
 
-Filter by the specific task (use entity type = task, then find the task in the entity filter). Look for assignment events. You'll see exactly when the task changed hands and which actor caused it — was it the CEO reassigning work, another agent releasing the task, or a budget-triggered pause that caused the original agent to drop it?
+Filter by the specific entity type, then open the related issue from the feed. Look for assignment events. You'll see exactly when the task changed hands and which actor caused it.
 
 ---
 
 **"When did an agent start spending so much?"**
 
-Filter by the agent and look for cost events. You'll see each heartbeat's cost and the cumulative total. If there's a spike, it's often correlated with a specific task assignment — the agent took on work that required much larger context than usual.
+Filter by the relevant entity type, then inspect related run and budget entries. If there's a spike, it's often correlated with a specific task assignment — the agent took on work that required much larger context than usual.
 
 ---
 
 **"Who approved the hire request for [agent name]?"**
 
-Filter by entity type = approval, then find the specific hire approval. The approval event will show which actor approved it (you, or your delegate if you have one), and the exact timestamp.
+Filter by entity type = approval, then open the specific hire approval. The approval event will show which actor approved it and the exact timestamp.
 
 ---
 
 **"Why isn't the agent doing anything?"**
 
-Filter by the agent and look at the most recent events. The last event in the list tells you the current state: has the agent been paused (look for a pause event)? Did the last heartbeat complete or fail? Did it complete with no tasks assigned (and therefore nothing to do)?
+Filter by entity type and look at the most recent events. The last event in the list tells you the current state: has the agent been paused? Did the last heartbeat complete or fail? Did it complete with no tasks assigned?
 
 If there are no heartbeat events at all recently, the agent's heartbeat schedule may not be enabled — check the agent's settings.
 
@@ -91,7 +84,7 @@ If there are no heartbeat events at all recently, the agent's heartbeat schedule
 
 **"A task has been 'in progress' for hours with no comments — what's happening?"**
 
-Filter by the task and look for heartbeat events associated with the assigned agent. If you see heartbeats completing but no task update events, the agent may be running but not making progress (perhaps it's blocked waiting for something external). Read the most recent comments on the task itself.
+Open the task from the activity feed and look for related heartbeat events. If you see heartbeats completing but no task update events, the agent may be running but not making progress. Read the most recent comments on the task itself.
 
 If there are no recent heartbeat events at all, the agent may have been paused or may have hit a budget limit — check the agent's status on the dashboard.
 

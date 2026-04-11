@@ -31,7 +31,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    The CEO is now active. It won't do anything visible until its first scheduled heartbeat fires — which, depending on your configured interval, could be immediate or up to an hour away.
 
-   > **Tip:** If you want the CEO to run right now without waiting for the schedule, click **Run Now** on the agent detail page. This manually triggers a heartbeat immediately.
+   > **Tip:** If you want the CEO to run right now without waiting for the schedule, click **Run Heartbeat** on the agent detail page. This manually triggers a heartbeat immediately.
 
 2. **Wait for the first heartbeat to run**
 
@@ -49,7 +49,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
 3. **Review the CEO's strategy**
 
-   After its first heartbeat, the CEO almost always creates a strategy approval. Navigate to the **Approvals** page using the sidebar.
+   After its first heartbeat, the CEO almost always creates a strategy approval. Open the **Approvals** page from the dashboard, a direct link, or any approval-related prompt in the app.
 
    You'll see a pending approval with the type **Strategy**.
 
@@ -75,15 +75,15 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    ![The approve, request revision, and reject buttons on the strategy approval page](../images/approvals/approve-reject-buttons.png)
 
-   - **Approve** — The CEO's strategy is accepted. On its next heartbeat, the CEO will begin creating tasks and assigning work.
-   - **Request revision** — Leave a note explaining what needs to change. The CEO will receive your feedback on its next heartbeat, revise the strategy, and resubmit.
+   - **Approve** — The CEO's strategy is accepted. Paperclip queues the CEO to wake automatically, so follow-up work usually begins shortly after approval.
+   - **Request revision** — Leave a note explaining what needs to change. The CEO will receive your feedback, revise the strategy, and resubmit.
    - **Reject** — The strategy is declined outright. The CEO will receive a rejection and can propose a new strategy.
 
    If the strategy looks broadly right, approve it. You can always update the company goal and request a revised strategy later if priorities shift.
 
 5. **Watch tasks appear**
 
-   Once the strategy is approved, the CEO's next heartbeat creates tasks on the board. Navigate to **Tasks** in the sidebar.
+   Once the strategy is approved, the CEO starts creating work on the board. Navigate to **Issues** in the sidebar.
 
    ![The task inbox showing newly created tasks from the CEO's first planning heartbeat](../images/tasks/inbox-newly-created-tasks.png)
 
@@ -110,7 +110,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
 ## Reading the run transcript
 
-For a deeper look at what happened during any heartbeat, go to the **Agents** page, open the CEO, and click **Run History**. Click any completed run to open the transcript.
+For a deeper look at what happened during any heartbeat, go to the **Agents** page, open the CEO, and click **Runs**. Click any completed run to open the transcript.
 
 ![The run transcript view showing the full log of what the CEO did during a single heartbeat](../images/agents/run-transcript-view.png)
 
@@ -124,7 +124,7 @@ The following situations come up frequently in a company's first few hours. Here
 
 **No strategy approval appeared after the first heartbeat**
 
-First, check the **Approvals** page — it may be there but not visible from where you're looking. If it's genuinely not there, go to **Agents → CEO → Run History** and open the most recent run. The transcript will show whether the heartbeat completed successfully or encountered an error.
+First, check the **Approvals** page — it may be there but not visible from where you're looking. If it's genuinely not there, go to **Agents → CEO → Runs** and open the most recent run. The transcript will show whether the heartbeat completed successfully or encountered an error.
 
 **The CEO assigned all tasks to itself**
 
@@ -132,11 +132,11 @@ This is correct behaviour when the CEO has no reports yet. It can't delegate to 
 
 **The agent is stuck in "running" for more than 30 minutes**
 
-A heartbeat that takes longer than expected is usually caused by one of three things: the timeout setting is very high and the agent is doing a complex task, the agent has hit a loop, or the API is slow. Check the **Run History** to see if there's a live transcript updating. If the transcript has stopped updating, the run may have stalled. In that case, you can manually stop it from the agent detail page and check the timeout setting.
+A heartbeat that takes longer than expected is usually caused by one of three things: the task is complex, the agent has hit a loop, or the API is slow. Check the **Runs** tab to see if there's a live transcript updating. If the transcript has stopped updating, the run may have stalled. In that case, you can manually stop it from the agent detail page.
 
 **Agent status shows "error"**
 
-Open **Run History** and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory.
+Open **Runs** and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory.
 
 > **Warning:** An agent in "error" status won't fire new heartbeats until the underlying issue is resolved. Check and fix the error, then click **Resume** on the agent detail page to restart it.
 

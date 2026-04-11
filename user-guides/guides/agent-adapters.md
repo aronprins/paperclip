@@ -14,12 +14,11 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 |---|---|---|
 | `claude_local` | Most users — runs Claude on your Mac | Claude Code installed, Anthropic API key |
 | `codex_local` | OpenAI users — runs Codex on your Mac | Codex CLI installed, OpenAI API key |
+| `gemini_local` | Gemini users — runs Gemini CLI on your Mac | Gemini CLI installed, Google credentials |
 | `opencode_local` | Multi-provider flexibility, switchable models | OpenCode CLI installed, relevant API keys |
-| `http` | Custom cloud-based or server-side agents | A web server or cloud function that accepts Paperclip webhook calls |
-| `process` | Custom local scripts or binaries | A runnable script or command on the same machine |
-| `openclaw_gateway` | Connecting to an external Paperclip-compatible agent gateway | Access to a compatible gateway service |
+| `cursor` | Users already working inside Cursor | Cursor installed and configured |
 
-For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it requires nothing beyond an API key.
+For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
 ![Adapter type dropdown showing all available options](../images/agents/adapter-type-dropdown.png)
 
@@ -45,13 +44,13 @@ The folder on your Mac where the agent does its work — reads files, writes out
 
 **Model**
 Which Claude model to use. The main choices:
-- `claude-opus-4-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
-- `claude-sonnet-4-5` — fast, capable, lower cost. Good for worker agents doing routine tasks.
+- `claude-opus-4-6` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
+- `claude-sonnet-4-6` — fast, capable, lower cost. Good for worker agents doing routine tasks.
 
 When in doubt, start with Sonnet for workers and Opus for the CEO.
 
-**API key environment variable**
-The environment variable name that holds your Anthropic API key (e.g. `ANTHROPIC_API_KEY`). You'll have configured this in your system environment or in Paperclip's environment settings. If you're not sure what to put here, use `ANTHROPIC_API_KEY` — that's the standard name.
+**Environment variables**
+The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
 
 **Timeout (seconds)**
 How long a single heartbeat run is allowed to take before Paperclip cuts it off. 300 seconds (5 minutes) is a safe default for most tasks. Complex coding tasks may need longer — you can increase it to 600 or more. Setting it too low will cause agents to time out mid-task.
@@ -79,10 +78,10 @@ The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. 
 
 ### Configuration fields
 
-The fields are the same as `claude_local` — working directory, model, API key environment variable, and timeout — but pointing to OpenAI instead of Anthropic.
+The fields are the same as `claude_local` — mainly model selection and environment variables — but pointing to OpenAI instead of Anthropic.
 
 **Model** examples for Codex:
-- `o3` — OpenAI's most capable model
+- `gpt-5.3-codex` — the default and the normal starting point
 - `o4-mini` — fast and cost-effective for routine tasks
 
 ![Codex local adapter configuration form](../images/agents/codex-local-config.png)
@@ -95,7 +94,20 @@ The `opencode_local` adapter runs your agent using OpenCode — a flexible, open
 
 **When to use this:** If you want to switch between providers easily, or use a model not available through `claude_local` or `codex_local` directly.
 
-The configuration is similar to the other local adapters, with an additional **Model** field in `provider/model` format (e.g., `anthropic/claude-opus-4-5` or `openai/gpt-4o`).
+The configuration is similar to the other local adapters, with an additional **Model** field in `provider/model` format (e.g., `anthropic/claude-opus-4-6` or `openai/gpt-5.3-codex`).
+
+---
+
+## Other adapters you may see
+
+Depending on your build and installed plugins, you may also see adapters like `hermes_local` or other external integrations. Those follow the same pattern: Paperclip handles orchestration, and the adapter decides how the underlying runtime is launched.
+
+Two built-in adapter types are intentionally not beginner-facing:
+
+- `http` — for developer-built webhook integrations
+- `process` — for custom local commands and scripts
+
+You may also notice `openclaw_gateway` in the codebase; it's marked as coming soon rather than being part of the normal beginner flow.
 
 ---
 

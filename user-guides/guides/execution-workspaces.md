@@ -96,6 +96,6 @@ You'll want to pay closer attention when:
 
 ## You're set
 
-Execution workspaces give agents the isolated, stateful environments they need to do reliable file-based work. The next guide covers Skills — reusable instruction sets you can give to agents to teach them specific procedures.
+Execution workspaces give agents the isolated, stateful environments they need to do reliable file-based work. The next guide covers heartbeats and routines — how you decide *when* an agent runs, and why most agents should stay dormant until real work arrives.
 
-[Skills →](skills.md)
+[Heartbeats & Routines →](heartbeats-and-routines.md)

@@ -38,10 +38,11 @@
     {
       "title": "Advanced",
       "pages": [
-        { "title": "Execution Workspaces", "file": "guides/execution-workspaces.md" },
-        { "title": "Skills",               "file": "guides/skills.md" },
-        { "title": "Export & Import",      "file": "guides/export-import.md" },
-        { "title": "Terminal Setup",       "file": "guides/terminal-setup.md" }
+        { "title": "Execution Workspaces",  "file": "guides/execution-workspaces.md" },
+        { "title": "Heartbeats & Routines", "file": "guides/heartbeats-and-routines.md" },
+        { "title": "Skills",                "file": "guides/skills.md" },
+        { "title": "Export & Import",       "file": "guides/export-import.md" },
+        { "title": "Terminal Setup",        "file": "guides/terminal-setup.md" }
       ]
     }
   ]

@@ -714,7 +714,6 @@
       text-align: center;
     }
 
-    @media (max-width: 720px) { #search-wrap { display: none; } }
 
     /* ─── Heading highlight (search jump) ─────────────────────────── */
     @keyframes heading-flash {
@@ -737,6 +736,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-left: auto;
       background: none;
       border: none;
       border-radius: 8px;
@@ -926,6 +926,8 @@
       #hamburger { display: flex; }
       #header-nav-row { display: none; }
       #subnav { display: none; }
+      #logo-divider, #logo-sub { display: none; }
+      #search-kbd { display: none; }
       :root { --outer-px: 20px; --layout-max: 100%; }
     }
   </style>

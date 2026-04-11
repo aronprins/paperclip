@@ -716,6 +716,20 @@
 
     @media (max-width: 720px) { #search-wrap { display: none; } }
 
+    /* ─── Heading highlight (search jump) ─────────────────────────── */
+    @keyframes heading-flash {
+      0%   { background-color: var(--mint); }
+      40%  { background-color: var(--mint); }
+      100% { background-color: transparent; }
+    }
+
+    .heading-highlight {
+      animation: heading-flash 2s ease-out forwards;
+      border-radius: 4px;
+      padding-left: 6px;
+      margin-left: -6px;
+    }
+
     /* ─── Theme toggle button ───────────────────────────────────────── */
     #theme-toggle {
       width: 32px;
@@ -1161,7 +1175,7 @@ function renderSearchResults(query) {
     let metaHtml    = escapeHtml(r.sectionTitle);
     if (r.matchHeading) metaHtml += ` · ${highlightMatch(r.matchHeading, query)}`;
     else if (r.snippet) metaHtml += ` · ${highlightMatch(r.snippet, query)}`;
-    return `<div class="search-result" role="option" data-file="${escapeAttr(r.file)}" data-idx="${i}">
+    return `<div class="search-result" role="option" data-file="${escapeAttr(r.file)}" ${r.matchHeading ? `data-heading="${escapeAttr(r.matchHeading)}"` : ''} data-idx="${i}">
       <div class="search-result-title">${titleHtml}</div>
       <div class="search-result-meta">${metaHtml}</div>
     </div>`;
@@ -1170,8 +1184,9 @@ function renderSearchResults(query) {
   box.querySelectorAll('.search-result').forEach(el => {
     el.addEventListener('mousedown', e => {
       e.preventDefault();
+      const heading = el.dataset.heading || null;
       closeSearch();
-      loadPage(el.dataset.file);
+      loadPage(el.dataset.file, heading);
     });
   });
 
@@ -1215,7 +1230,7 @@ function initSearch() {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const target = searchFocusedIdx >= 0 ? items[searchFocusedIdx] : items.length === 1 ? items[0] : null;
-      if (target) { closeSearch(); loadPage(target.dataset.file); }
+      if (target) { closeSearch(); loadPage(target.dataset.file, target.dataset.heading || null); }
     } else if (e.key === 'Escape') {
       closeSearch();
       input.blur();
@@ -1390,7 +1405,7 @@ function buildFlatList() {
 }
 
 /* ─── Load page ─────────────────────────────────────────────────────────── */
-async function loadPage(file) {
+async function loadPage(file, targetHeading = null) {
   currentFile = file;
   setActiveState(file);
   showLoading();
@@ -1418,7 +1433,23 @@ async function loadPage(file) {
   renderPageNav(file);
   buildToc(article);
   hideLoading();
-  window.scrollTo(0, 0);
+
+  if (targetHeading) {
+    const headings = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const match = [...headings].find(h => h.textContent.trim().toLowerCase() === targetHeading.toLowerCase());
+    if (match) {
+      const stickyOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')) || 92;
+      const top = match.getBoundingClientRect().top + window.scrollY - stickyOffset - 20;
+      window.scrollTo({ top, behavior: 'smooth' });
+      match.classList.add('heading-highlight');
+      match.addEventListener('animationend', () => match.classList.remove('heading-highlight'), { once: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  } else {
+    window.scrollTo(0, 0);
+  }
+
   history.replaceState(null, '', '#' + encodeURIComponent(file));
 }
 

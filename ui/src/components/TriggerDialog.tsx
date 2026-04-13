@@ -173,8 +173,13 @@ export function TriggerDialog({
               </SelectTrigger>
               <SelectContent>
                 {triggerKinds.map((kind) => (
-                  <SelectItem key={kind} value={kind}>
+                  <SelectItem
+                    key={kind}
+                    value={kind}
+                    disabled={!isEdit && kind === "webhook"}
+                  >
                     {kind}
+                    {!isEdit && kind === "webhook" ? " — COMING SOON" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>

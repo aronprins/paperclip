@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { X } from "lucide-react";
 
@@ -840,11 +841,9 @@ function WindowAndWeekdaysToggles({
     <>
       <div className="space-y-2">
         <label className="flex items-center gap-2 cursor-pointer text-sm">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={state.windowEnabled}
-            onChange={(e) => update({ windowEnabled: e.target.checked })}
-            className="h-4 w-4"
+            onCheckedChange={(checked) => update({ windowEnabled: checked === true })}
           />
           <span>Only between certain hours</span>
         </label>
@@ -898,11 +897,9 @@ function WeekdaysOnlyToggle({
 }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer text-sm">
-      <input
-        type="checkbox"
+      <Checkbox
         checked={state.weekdaysOnly}
-        onChange={(e) => update({ weekdaysOnly: e.target.checked })}
-        className="h-4 w-4"
+        onCheckedChange={(checked) => update({ weekdaysOnly: checked === true })}
       />
       <span>Weekdays only (Mon–Fri)</span>
     </label>

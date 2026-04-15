@@ -1,9 +1,8 @@
----
-title: Local Development
-summary: Set up Paperclip for local development
----
+# Local Development
 
 Run Paperclip locally with zero external dependencies.
+
+---
 
 ## Prerequisites
 
@@ -60,7 +59,7 @@ Allow additional private hostnames:
 pnpm paperclipai allowed-hostname dotta-macbook-pro
 ```
 
-For full setup and troubleshooting, see [Tailscale Private Access](/deploy/tailscale-private-access).
+For full setup and troubleshooting, see [Tailscale Private Access](tailscale-private-access.md).
 
 ## Health Checks
 

@@ -1,9 +1,8 @@
----
-title: Process Adapter
-summary: Generic shell process adapter
----
+# Process Adapter
 
 The `process` adapter executes arbitrary shell commands. Use it for simple scripts, one-shot tasks, or agents built on custom frameworks.
+
+---
 
 ## When to Use
 

@@ -1,9 +1,8 @@
----
-title: Tailscale Private Access
-summary: Run Paperclip with Tailscale-friendly host binding and connect from other devices
----
+# Tailscale Private Access
 
 Use this when you want to access Paperclip over Tailscale (or a private LAN/VPN) instead of only `localhost`.
+
+---
 
 ## 1. Start Paperclip in private authenticated mode
 

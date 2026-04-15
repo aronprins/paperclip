@@ -1,9 +1,8 @@
----
-title: Deployment Modes
-summary: local_trusted vs authenticated (private/public)
----
+# Deployment Modes
 
 Paperclip supports two runtime modes with different security profiles.
+
+---
 
 ## `local_trusted`
 

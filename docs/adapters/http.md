@@ -1,9 +1,8 @@
----
-title: HTTP Adapter
-summary: HTTP webhook adapter
----
+# HTTP Adapter
 
 The `http` adapter sends a webhook request to an external agent service. The agent runs externally and Paperclip just triggers it.
+
+---
 
 ## When to Use
 

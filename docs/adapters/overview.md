@@ -1,9 +1,8 @@
----
-title: Adapters Overview
-summary: What adapters are and how they connect agents to Paperclip
----
+# Adapters Overview
 
 Adapters are the bridge between Paperclip's orchestration layer and agent runtimes. Each adapter knows how to invoke a specific type of AI agent and capture its results.
+
+---
 
 ## How Adapters Work
 
@@ -18,16 +17,16 @@ When a heartbeat fires, Paperclip:
 
 | Adapter | Type Key | Description |
 |---------|----------|-------------|
-| [Claude Local](/adapters/claude-local) | `claude_local` | Runs Claude Code CLI locally |
-| [Codex Local](/adapters/codex-local) | `codex_local` | Runs OpenAI Codex CLI locally |
-| [Gemini Local](/adapters/gemini-local) | `gemini_local` | Runs Gemini CLI locally (experimental — adapter package exists, not yet in stable type enum) |
+| [Claude Local](claude-local.md) | `claude_local` | Runs Claude Code CLI locally |
+| [Codex Local](codex-local.md) | `codex_local` | Runs OpenAI Codex CLI locally |
+| [Gemini Local](gemini-local.md) | `gemini_local` | Runs Gemini CLI locally (experimental — adapter package exists, not yet in stable type enum) |
 | OpenCode Local | `opencode_local` | Runs OpenCode CLI locally (multi-provider `provider/model`) |
 | Cursor | `cursor` | Runs Cursor in background mode |
 | Pi Local | `pi_local` | Runs an embedded Pi agent locally |
 | Hermes Local | `hermes_local` | Runs Hermes CLI locally (`hermes-paperclip-adapter`) |
 | OpenClaw Gateway | `openclaw_gateway` | Connects to an OpenClaw gateway endpoint |
-| [Process](/adapters/process) | `process` | Executes arbitrary shell commands |
-| [HTTP](/adapters/http) | `http` | Sends webhooks to external agents |
+| [Process](process.md) | `process` | Executes arbitrary shell commands |
+| [HTTP](http.md) | `http` | Sends webhooks to external agents |
 
 ### External (plugin) adapters
 
@@ -51,7 +50,7 @@ curl -X POST http://localhost:3102/api/adapters \
   -d '{"localPath": "/home/user/my-adapter"}'
 ```
 
-See [External Adapters](/adapters/external-adapters) for the full guide.
+See [External Adapters](external-adapters.md) for the full guide.
 
 ## Adapter Architecture
 
@@ -81,8 +80,8 @@ my-adapter/
 - **Need a coding agent?** Use `claude_local`, `codex_local`, `opencode_local`, `hermes_local`, or install `droid_local` as an external plugin
 - **Need to run a script or command?** Use `process`
 - **Need to call an external service?** Use `http`
-- **Need something custom?** [Create your own adapter](/adapters/creating-an-adapter) or [build an external adapter plugin](/adapters/external-adapters)
+- **Need something custom?** [Create your own adapter](creating-an-adapter.md) or [build an external adapter plugin](external-adapters.md)
 
 ## UI Parser Contract
 
-External adapters can ship a self-contained UI parser that tells the Paperclip web UI how to render their stdout. Without it, the UI uses a generic shell parser. See the [UI Parser Contract](/adapters/adapter-ui-parser) for details.
+External adapters can ship a self-contained UI parser that tells the Paperclip web UI how to render their stdout. Without it, the UI uses a generic shell parser. See the [UI Parser Contract](adapter-ui-parser.md) for details.

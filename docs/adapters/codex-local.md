@@ -1,9 +1,8 @@
----
-title: Codex Local
-summary: OpenAI Codex local adapter setup and configuration
----
+# Codex Local
 
 The `codex_local` adapter runs OpenAI's Codex CLI locally. It supports session persistence via `previous_response_id` chaining and skills injection through the global Codex skills directory.
+
+---
 
 ## Prerequisites
 

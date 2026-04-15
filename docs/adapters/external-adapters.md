@@ -1,9 +1,8 @@
----
-title: External Adapters
-summary: Build, package, and distribute adapters as plugins without modifying Paperclip source
----
+# External Adapters
 
 Paperclip supports external adapter plugins that can be installed from npm packages or local directories. External adapters work exactly like built-in adapters — they execute agents, parse output, and render transcripts — but they live in their own package and don't require changes to Paperclip's source code.
+
+---
 
 ## Built-in vs External
 
@@ -11,7 +10,7 @@ Paperclip supports external adapter plugins that can be installed from npm packa
 |---|---|---|
 | Source location | Inside `paperclip-fork/packages/adapters/` | Separate npm package or local directory |
 | Registration | Hardcoded in three registries | Loaded at startup via plugin system |
-| UI parser | Static import at build time | Dynamically loaded from API (see [UI Parser](/adapters/adapter-ui-parser)) |
+| UI parser | Static import at build time | Dynamically loaded from API (see [UI Parser](adapter-ui-parser.md)) |
 | Distribution | Ships with Paperclip | Published to npm or linked via `file:` |
 | Updates | Requires Paperclip release | Independent versioning |
 
@@ -387,6 +386,6 @@ Other Paperclip users can then install your adapter by package name from the UI 
 
 ## Next Steps
 
-- [UI Parser Contract](/adapters/adapter-ui-parser) — add a custom run-log parser so the UI renders your adapter's output correctly
-- [Creating an Adapter](/adapters/creating-an-adapter) — full walkthrough of adapter internals
+- [UI Parser Contract](adapter-ui-parser.md) — add a custom run-log parser so the UI renders your adapter's output correctly
+- [Creating an Adapter](creating-an-adapter.md) — full walkthrough of adapter internals
 - [How Agents Work](/guides/agent-developer/how-agents-work) — understand the heartbeat lifecycle your adapter serves

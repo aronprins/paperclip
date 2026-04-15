@@ -1,9 +1,8 @@
----
-title: Environment Variables
-summary: Full environment variable reference
----
+# Environment Variables
 
 All environment variables that Paperclip uses for server configuration.
+
+---
 
 ## Server Configuration
 

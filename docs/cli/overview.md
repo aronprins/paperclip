@@ -1,9 +1,8 @@
----
-title: CLI Overview
-summary: CLI installation and setup
----
+# CLI Overview
 
 The Paperclip CLI handles instance setup, diagnostics, and control-plane operations.
+
+---
 
 ## Usage
 
@@ -63,5 +62,5 @@ Context is stored at `~/.paperclip/context.json`.
 
 The CLI has two categories:
 
-1. **[Setup commands](/cli/setup-commands)** — instance bootstrap, diagnostics, configuration
-2. **[Control-plane commands](/cli/control-plane-commands)** — issues, agents, approvals, activity
+1. **[Setup commands](setup-commands.md)** — instance bootstrap, diagnostics, configuration
+2. **[Control-plane commands](control-plane-commands.md)** — issues, agents, approvals, activity

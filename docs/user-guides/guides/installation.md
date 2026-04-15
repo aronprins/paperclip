@@ -165,7 +165,7 @@ Paperclip opens automatically in your browser. If it doesn't, navigate to [http:
 
 You'll land in Paperclip ready to start onboarding. You haven't created a company yet — that's the next step.
 
-> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal. For persistent background runs, see the [advanced deployment docs](../../../docs/deploy/overview.md).
+> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal. For persistent background runs, see the [advanced deployment docs](../../deploy/overview.md).
 
 ---
 

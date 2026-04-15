@@ -1,9 +1,8 @@
----
-title: Adapter UI Parser Contract
-summary: Ship a custom run-log parser so the Paperclip UI renders your adapter's output correctly
----
+# Adapter UI Parser Contract
 
 When Paperclip runs an agent, stdout is streamed to the UI in real time. The UI needs a **parser** to convert raw stdout lines into structured transcript entries (tool calls, tool results, assistant messages, system events). Without a custom parser, the UI falls back to a generic shell parser that treats every non-system line as `assistant` output — tool commands leak as plain text, durations are lost, and errors are invisible.
+
+---
 
 ## The Problem
 
@@ -283,5 +282,5 @@ To skip it, simply don't include `exports["./ui-parser"]` in your `package.json`
 
 ## Next Steps
 
-- [External Adapters](/adapters/external-adapters) — full guide to building adapter packages
-- [Creating an Adapter](/adapters/creating-an-adapter) — adapter internals and built-in integration
+- [External Adapters](external-adapters.md) — full guide to building adapter packages
+- [Creating an Adapter](creating-an-adapter.md) — adapter internals and built-in integration

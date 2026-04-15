@@ -1,9 +1,8 @@
----
-title: Control-Plane Commands
-summary: Issue, agent, approval, and dashboard commands
----
+# Control-Plane Commands
 
 Client-side commands for managing issues, agents, approvals, and more.
+
+---
 
 ## Issue Commands
 

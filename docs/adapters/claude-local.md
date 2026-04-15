@@ -1,9 +1,8 @@
----
-title: Claude Local
-summary: Claude Code local adapter setup and configuration
----
+# Claude Local
 
 The `claude_local` adapter runs Anthropic's Claude Code CLI locally. It supports session persistence, skills injection, and structured output parsing.
+
+---
 
 ## Prerequisites
 

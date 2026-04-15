@@ -1,9 +1,8 @@
----
-title: Gemini Local
-summary: Gemini CLI local adapter setup and configuration
----
+# Gemini Local
 
 The `gemini_local` adapter runs Google's Gemini CLI locally. It supports session persistence with `--resume`, skills injection, and structured `stream-json` output parsing.
+
+---
 
 ## Prerequisites
 

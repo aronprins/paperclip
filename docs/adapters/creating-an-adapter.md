@@ -1,13 +1,10 @@
----
-title: Creating an Adapter
-summary: Guide to building a custom adapter
----
+# Creating an Adapter
 
 Build a custom adapter to connect Paperclip to any agent runtime.
 
-<Tip>
-If you're using Claude Code, the `.agents/skills/create-agent-adapter` skill can guide you through the full adapter creation process interactively. Just ask Claude to create a new adapter and it will walk you through each step.
-</Tip>
+> **Tip:** If you're using Claude Code, the `.agents/skills/create-agent-adapter` skill can guide you through the full adapter creation process interactively. Ask Claude to create a new adapter and it will walk you through each step.
+
+---
 
 ## Two Paths
 
@@ -19,7 +16,7 @@ If you're using Claude Code, the `.agents/skills/create-agent-adapter` skill can
 | Registration | Edit 3 registries | Auto-loaded at startup |
 | Best for | Core adapters, contributors | Third-party adapters, internal tools |
 
-For most cases, **build an external adapter plugin**. It's cleaner, independently versioned, and doesn't require modifying Paperclip's source. See [External Adapters](/adapters/external-adapters) for the full guide.
+For most cases, **build an external adapter plugin**. It's cleaner, independently versioned, and doesn't require modifying Paperclip's source. See [External Adapters](external-adapters.md) for the full guide.
 
 The rest of this page covers the shared internals that both paths use.
 
@@ -42,7 +39,7 @@ my-adapter/                   # external plugin
       index.ts          # UI exports (built-in only)
       parse-stdout.ts   # Transcript parser (built-in only)
       build-config.ts   # Config builder
-    ui-parser.ts        # Self-contained UI parser (external — see [UI Parser Contract](/adapters/adapter-ui-parser))
+    ui-parser.ts        # Self-contained UI parser (external — see [UI Parser Contract](adapter-ui-parser.md))
     cli/
       index.ts          # CLI exports
       format-event.ts   # Terminal formatter
@@ -161,7 +158,7 @@ For built-in adapters registered in Paperclip's source:
 - `build-config.ts` — converts form values to `adapterConfig` JSON
 - Config fields React component in `ui/src/adapters/<name>/config-fields.tsx`
 
-For external adapters, use a self-contained `ui-parser.ts` instead. See the [UI Parser Contract](/adapters/adapter-ui-parser).
+For external adapters, use a self-contained `ui-parser.ts` instead. See the [UI Parser Contract](adapter-ui-parser.md).
 
 ## Step 5: CLI Module
 
@@ -222,6 +219,6 @@ Make Paperclip skills discoverable to your agent runtime without writing to the 
 
 ## Next Steps
 
-- [External Adapters](/adapters/external-adapters) — build a standalone adapter plugin
-- [UI Parser Contract](/adapters/adapter-ui-parser) — ship a custom run-log parser
+- [External Adapters](external-adapters.md) — build a standalone adapter plugin
+- [UI Parser Contract](adapter-ui-parser.md) — ship a custom run-log parser
 - [How Agents Work](/guides/agent-developer/how-agents-work) — the heartbeat lifecycle

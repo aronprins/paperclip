@@ -78,7 +78,7 @@ npx paperclipai configure --section server
 
 ## Advanced configuration
 
-For persistent background runs, Docker deployment, external databases, and cloud hosting options, see the [deployment overview](../../../docs/deploy/overview.md).
+For persistent background runs, Docker deployment, external databases, and cloud hosting options, see the [deployment overview](../../deploy/overview.md).
 
 ---
 

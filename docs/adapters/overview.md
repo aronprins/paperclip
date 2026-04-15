@@ -1,87 +1,95 @@
 # Adapters Overview
 
-Adapters are the bridge between Paperclip's orchestration layer and agent runtimes. Each adapter knows how to invoke a specific type of AI agent and capture its results.
+Adapters connect Paperclip's control plane to the runtime that actually does the work. Use this section when you need to choose an adapter, understand what Paperclip expects from one, or build a new adapter package.
 
 ---
 
-## How Adapters Work
+## What An Adapter Does
 
-When a heartbeat fires, Paperclip:
+Every adapter is responsible for the same core jobs:
 
-1. Looks up the agent's `adapterType` and `adapterConfig`
-2. Calls the adapter's `execute()` function with the execution context
-3. The adapter spawns or calls the agent runtime
-4. The adapter captures stdout, parses usage/cost data, and returns a structured result
+1. Launch or call the underlying runtime.
+2. Pass the agent's company, task, and wake context through.
+3. Capture results, session state, and usage metadata.
+4. Validate the environment before a run starts.
+5. Optionally provide a custom UI transcript parser and skills sync behavior.
 
-## Built-in Adapters
+> **Note:** Paperclip orchestrates agents. The adapter decides how the runtime starts, how it keeps state, and how its output is interpreted.
 
-| Adapter | Type Key | Description |
-|---------|----------|-------------|
-| [Claude Local](claude-local.md) | `claude_local` | Runs Claude Code CLI locally |
-| [Codex Local](codex-local.md) | `codex_local` | Runs OpenAI Codex CLI locally |
-| [Gemini Local](gemini-local.md) | `gemini_local` | Runs Gemini CLI locally (experimental — adapter package exists, not yet in stable type enum) |
-| OpenCode Local | `opencode_local` | Runs OpenCode CLI locally (multi-provider `provider/model`) |
-| Cursor | `cursor` | Runs Cursor in background mode |
-| Pi Local | `pi_local` | Runs an embedded Pi agent locally |
-| Hermes Local | `hermes_local` | Runs Hermes CLI locally (`hermes-paperclip-adapter`) |
-| OpenClaw Gateway | `openclaw_gateway` | Connects to an OpenClaw gateway endpoint |
-| [Process](process.md) | `process` | Executes arbitrary shell commands |
-| [HTTP](http.md) | `http` | Sends webhooks to external agents |
+---
 
-### External (plugin) adapters
+## Choose An Adapter
 
-These adapters ship as standalone npm packages and are installed via the plugin system:
+| Use case | Start here |
+|---|---|
+| Claude Code on your machine | [Claude Local](claude-local.md) |
+| OpenAI Codex CLI on your machine | [Codex Local](codex-local.md) |
+| Gemini CLI on your machine | [Gemini Local](gemini-local.md) |
+| A custom shell command or script | [Process](process.md) |
+| A webhook or cloud service you control | [HTTP](http.md) |
+| A standalone npm package or local plugin | [External Adapters](external-adapters.md) |
+| Writing a new adapter package from scratch | [Creating an Adapter](creating-an-adapter.md) |
+| Building a custom run-log parser | [Adapter UI Parser Contract](adapter-ui-parser.md) |
 
-| Adapter | Package | Type Key | Description |
-|---------|---------|----------|-------------|
-| Droid Local | `@henkey/droid-paperclip-adapter` | `droid_local` | Runs Factory Droid locally |
+If you are starting from scratch, the most common path is:
+
+1. Pick a local adapter if the agent runs on the same machine as Paperclip.
+2. Pick `process` if the runtime is just a command.
+3. Pick `http` if the runtime lives behind an API or webhook.
+4. Use an external adapter plugin when you want independent versioning and installation.
+
+---
+
+## Built-In Adapters
+
+These adapters ship with Paperclip and are always available in the host:
+
+| Adapter | Type key | Best for |
+|---|---|---|
+| [Claude Local](claude-local.md) | `claude_local` | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
+| [Codex Local](codex-local.md) | `codex_local` | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
+| [Gemini Local](gemini-local.md) | `gemini_local` | Gemini CLI runs with resume support and local skills sync. |
+| [Process](process.md) | `process` | Shell commands, scripts, and custom local runtimes. |
+| [HTTP](http.md) | `http` | Webhook-style invocation into your own service. |
+
+Other built-ins also exist in the product, but this section covers the adapter pages that are documented for the docs website.
+
+---
 
 ## External Adapters
 
-You can build and distribute adapters as standalone packages — no changes to Paperclip's source code required. External adapters are loaded at startup via the plugin system.
+External adapters are installed separately and loaded at startup from the adapter plugin store. They behave like built-ins once installed, but they live in their own package and can be versioned independently.
 
-```sh
-# Install from npm via API
-curl -X POST http://localhost:3102/api/adapters \
-  -d '{"packageName": "my-paperclip-adapter"}'
+Install them from the Board UI or via `POST /api/adapters/install`.
 
-# Or link from a local directory
-curl -X POST http://localhost:3102/api/adapters \
-  -d '{"localPath": "/home/user/my-adapter"}'
-```
+See:
 
-See [External Adapters](external-adapters.md) for the full guide.
+- [External Adapters](external-adapters.md)
+- [Adapter UI Parser Contract](adapter-ui-parser.md)
+- [Creating an Adapter](creating-an-adapter.md)
 
-## Adapter Architecture
+---
 
-Each adapter is a package with modules consumed by three registries:
+## Common Concepts
 
-```
-my-adapter/
-  src/
-    index.ts            # Shared metadata (type, label, models)
-    server/
-      execute.ts        # Core execution logic
-      parse.ts          # Output parsing
-      test.ts           # Environment diagnostics
-    ui-parser.ts        # Self-contained UI transcript parser (for external adapters)
-    cli/
-      format-event.ts   # Terminal output for `paperclipai run --watch`
-```
+| Concept | Why it matters |
+|---|---|
+| `cwd` | The adapter's working directory. Most local adapters require an absolute path. |
+| `env` | Environment variables passed into the runtime. Secret refs are preferred for sensitive values. |
+| Session state | Lets an adapter resume the same conversation or command state on the next heartbeat. |
+| Skills | Adapter-specific logic for making Paperclip skills visible to the runtime. |
+| `testEnvironment()` | The adapter's readiness check. The UI uses it before you save or run the adapter. |
+| UI parser | Converts stdout into structured transcript entries for the run viewer. |
 
-| Registry | What it does | Source |
-|----------|-------------|--------|
-| **Server** | Executes agents, captures results | `createServerAdapter()` from package root |
-| **UI** | Renders run transcripts, provides config forms | `ui-parser.js` (dynamic) or static import (built-in) |
-| **CLI** | Formats terminal output for live watching | Static import |
+> **Tip:** If you are unsure which page to read first, start with the adapter that matches the runtime you already use, then open the external or custom adapter docs only if you need to package or extend it.
 
-## Choosing an Adapter
+---
 
-- **Need a coding agent?** Use `claude_local`, `codex_local`, `opencode_local`, `hermes_local`, or install `droid_local` as an external plugin
-- **Need to run a script or command?** Use `process`
-- **Need to call an external service?** Use `http`
-- **Need something custom?** [Create your own adapter](creating-an-adapter.md) or [build an external adapter plugin](external-adapters.md)
+## Next Steps
 
-## UI Parser Contract
-
-External adapters can ship a self-contained UI parser that tells the Paperclip web UI how to render their stdout. Without it, the UI uses a generic shell parser. See the [UI Parser Contract](adapter-ui-parser.md) for details.
+- [Claude Local](claude-local.md)
+- [Codex Local](codex-local.md)
+- [Gemini Local](gemini-local.md)
+- [Process](process.md)
+- [HTTP](http.md)
+- [External Adapters](external-adapters.md)

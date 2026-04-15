@@ -1,224 +1,211 @@
 # Creating an Adapter
 
-Build a custom adapter to connect Paperclip to any agent runtime.
+Build a custom adapter when the built-in local adapters do not fit your runtime. This page covers the code shape and runtime contracts; if you are packaging an installable plugin, read [External Adapters](external-adapters.md) first.
 
-> **Tip:** If you're using Claude Code, the `.agents/skills/create-agent-adapter` skill can guide you through the full adapter creation process interactively. Ask Claude to create a new adapter and it will walk you through each step.
+> **Tip:** If you are using Claude Code to scaffold the adapter, the `.agents/skills/create-agent-adapter` skill can walk you through the same structure interactively.
 
 ---
 
-## Two Paths
+## Built-In Vs External
 
-| | Built-in | External Plugin |
+| Area | Built-in | External |
 |---|---|---|
-| Source | Inside `paperclip-fork` | Separate npm package |
-| Distribution | Ships with Paperclip | Independent npm publish |
-| UI parser | Static import | Dynamic load from API |
-| Registration | Edit 3 registries | Auto-loaded at startup |
-| Best for | Core adapters, contributors | Third-party adapters, internal tools |
+| Source | Lives in the Paperclip repo | Lives in its own package |
+| Registration | Added to the host registry | Loaded through the adapter plugin store |
+| UI parser | Static import | Optional `./ui-parser` export |
+| Best for | Core adapters and host-owned runtimes | Independent distribution and local plugins |
 
-For most cases, **build an external adapter plugin**. It's cleaner, independently versioned, and doesn't require modifying Paperclip's source. See [External Adapters](external-adapters.md) for the full guide.
+For most new runtime integrations, start as an external adapter package. Move to a built-in only if Paperclip itself needs to ship it.
 
-The rest of this page covers the shared internals that both paths use.
+---
 
-## Package Structure
+## Recommended Package Layout
 
-```
-packages/adapters/<name>/    # built-in
-  ── or ──
-my-adapter/                   # external plugin
+```text
+my-adapter/
   package.json
   tsconfig.json
   src/
-    index.ts            # Shared metadata
+    index.ts
     server/
-      index.ts          # Server exports (createServerAdapter)
-      execute.ts        # Core execution logic
-      parse.ts          # Output parsing
-      test.ts           # Environment diagnostics
-    ui/
-      index.ts          # UI exports (built-in only)
-      parse-stdout.ts   # Transcript parser (built-in only)
-      build-config.ts   # Config builder
-    ui-parser.ts        # Self-contained UI parser (external — see [UI Parser Contract](adapter-ui-parser.md))
+      index.ts
+      execute.ts
+      test.ts
+    ui-parser.ts
     cli/
-      index.ts          # CLI exports
-      format-event.ts   # Terminal formatter
+      format-event.ts
 ```
 
-## Step 1: Root Metadata
+The important rule is simple: keep the package self-contained and make the package root export the metadata and server factory.
 
-`src/index.ts` is imported by all three consumers. Keep it dependency-free.
+The `cli/format-event.ts` file is optional. Add it only if you want a custom live-watch formatter for `paperclipai run --watch`.
+
+---
+
+## Root Metadata
+
+`src/index.ts` is imported by the host and should stay dependency-light.
 
 ```ts
-export const type = "my_agent";        // snake_case, globally unique
-export const label = "My Agent (local)";
-export const models = [
-  { id: "model-a", label: "Model A" },
-];
-export const agentConfigurationDoc = `# my_agent configuration
-Use when: ...
-Don't use when: ...
-Core fields: ...
+export const type = "my_adapter";
+export const label = "My Adapter";
+export const models = [{ id: "model-a", label: "Model A" }];
+export const agentConfigurationDoc = `# my_adapter agent configuration
+
+Use when:
+- ...
+
+Don't use when:
+- ...
+
+Core fields:
+- ...
 `;
 
-// Required for external adapters (plugin-loader convention)
 export { createServerAdapter } from "./server/index.js";
 ```
 
-## Step 2: Server Execute
+The `agentConfigurationDoc` string is what the UI shows when a user configures the adapter.
 
-`src/server/execute.ts` is the core. It receives an `AdapterExecutionContext` and returns an `AdapterExecutionResult`.
+---
 
-Key responsibilities:
+## Server Factory
 
-1. Read config using safe helpers (`asString`, `asNumber`, etc.) from `@paperclipai/adapter-utils/server-utils`
-2. Build environment with `buildPaperclipEnv(agent)` plus context vars
-3. Resolve session state from `runtime.sessionParams`
-4. Render prompt with `renderTemplate(template, data)`
-5. Spawn the process with `runChildProcess()` or call via `fetch()`
-6. Parse output for usage, costs, session state, errors
-7. Handle unknown session errors (retry fresh, set `clearSession: true`)
-
-### Available Helpers
-
-| Helper | Source | Purpose |
-|--------|--------|---------|
-| `runChildProcess(cmd, opts)` | `@paperclipai/adapter-utils/server-utils` | Spawn with timeout, grace, streaming |
-| `buildPaperclipEnv(agent)` | `@paperclipai/adapter-utils/server-utils` | Inject `PAPERCLIP_*` env vars |
-| `renderTemplate(tpl, data)` | `@paperclipai/adapter-utils/server-utils` | `{{variable}}` substitution |
-| `asString(v)` | `@paperclipai/adapter-utils` | Safe config value extraction |
-| `asNumber(v)` | `@paperclipai/adapter-utils` | Safe number extraction |
-
-### AdapterExecutionContext
+`createServerAdapter()` is the server-side entrypoint. It should return a `ServerAdapterModule` that wires execution and environment tests together.
 
 ```ts
-interface AdapterExecutionContext {
-  runId: string;
-  agent: { id: string; companyId: string; name: string; adapterConfig: unknown };
-  runtime: { sessionId: string | null; sessionParams: Record<string, unknown> | null };
-  config: Record<string, unknown>;      // agent's adapterConfig
-  context: Record<string, unknown>;      // task, wake reason, etc.
-  onLog: (stream: "stdout" | "stderr", chunk: string) => Promise<void>;
-  onMeta?: (meta: AdapterInvocationMeta) => Promise<void>;
-  onSpawn?: (meta: { pid: number; startedAt: string }) => Promise<void>;
-}
-```
+import type { ServerAdapterModule } from "@paperclipai/adapter-utils";
+import { execute } from "./execute.js";
+import { testEnvironment } from "./test.js";
 
-### AdapterExecutionResult
-
-```ts
-interface AdapterExecutionResult {
-  exitCode: number | null;
-  signal: string | null;
-  timedOut: boolean;
-  errorMessage?: string | null;
-  usage?: { inputTokens: number; outputTokens: number };
-  sessionParams?: Record<string, unknown> | null;  // persist across heartbeats
-  sessionDisplayId?: string | null;
-  provider?: string | null;
-  model?: string | null;
-  costUsd?: number | null;
-  clearSession?: boolean;  // set true to force fresh session on next wake
-}
-```
-
-## Step 3: Environment Test
-
-`src/server/test.ts` validates the adapter config before running.
-
-Return structured diagnostics:
-
-| Level | Meaning | Effect |
-|-------|---------|--------|
-| `error` | Invalid or unusable setup | Blocks execution |
-| `warn` | Non-blocking issue | Shown with yellow indicator |
-| `info` | Successful check | Shown in test results |
-
-```ts
-export async function testEnvironment(
-  ctx: AdapterEnvironmentTestContext,
-): Promise<AdapterEnvironmentTestResult> {
+export function createServerAdapter(): ServerAdapterModule {
   return {
-    adapterType: ctx.adapterType,
-    status: "pass",  // "pass" | "warn" | "fail"
-    checks: [
-      { level: "info", message: "CLI v1.2.0 detected", code: "cli_detected" },
-      { level: "warn", message: "No API key found", hint: "Set ANTHROPIC_API_KEY", code: "no_key" },
-    ],
-    testedAt: new Date().toISOString(),
+    type: "my_adapter",
+    execute,
+    testEnvironment,
+    models: [{ id: "model-a", label: "Model A" }],
+    agentConfigurationDoc,
   };
 }
 ```
 
-## Step 4: UI Module (Built-in Only)
+That module is the contract Paperclip relies on for the adapter lifecycle.
 
-For built-in adapters registered in Paperclip's source:
+---
 
-- `parse-stdout.ts` — converts stdout lines to `TranscriptEntry[]` for the run viewer
-- `build-config.ts` — converts form values to `adapterConfig` JSON
-- Config fields React component in `ui/src/adapters/<name>/config-fields.tsx`
+## Execute
 
-For external adapters, use a self-contained `ui-parser.ts` instead. See the [UI Parser Contract](adapter-ui-parser.md).
+`execute()` receives an `AdapterExecutionContext` and returns an `AdapterExecutionResult`.
 
-## Step 5: CLI Module
+Use it to:
 
-`format-event.ts` — pretty-prints stdout for `paperclipai run --watch` using `picocolors`.
+1. Read config with the safe helpers from `@paperclipai/adapter-utils/server-utils`.
+2. Build the runtime environment with `buildPaperclipEnv(agent)`.
+3. Resolve or resume session state from `runtime.sessionParams`.
+4. Render any prompt template with `renderTemplate()`.
+5. Spawn the command or call the remote service.
+6. Return usage, cost, session, and result metadata.
+
+Key helpers you are likely to use:
+
+| Helper | Use |
+|---|---|
+| `runChildProcess()` | Spawn a local command with streaming logs and timeouts. |
+| `buildPaperclipEnv()` | Inject the standard `PAPERCLIP_*` variables. |
+| `renderTemplate()` | Substitute template variables like `{{agentId}}`. |
+| `asString()`, `asNumber()`, `asBoolean()` | Read config values safely. |
+
+> **Note:** Treat adapter output as untrusted. Parse defensively and never execute its stdout blindly.
+
+---
+
+## Environment Test
+
+`testEnvironment()` validates the adapter config before a run starts.
+
+Use it to check:
+
+- the command or endpoint exists
+- the working directory is valid
+- required auth or environment variables are present
+- a lightweight hello probe actually succeeds
+
+Return `info`, `warn`, and `error` checks so the UI can explain what is ready and what still needs attention.
+
+---
+
+## Session Persistence
+
+If the runtime can resume state across heartbeats, persist that state in `sessionParams` and restore it on the next wake.
 
 ```ts
-export function formatStdoutEvent(line: string, debug: boolean): void {
-  if (line.startsWith("[tool-done]")) {
-    console.log(chalk.green(`  ✓ ${line}`));
-  } else {
-    console.log(`  ${line}`);
-  }
-}
+export const sessionCodec = {
+  deserialize(raw) {
+    // Validate the raw payload and convert it into session params.
+  },
+  serialize(params) {
+    // Convert session params back into a storable shape.
+  },
+  getDisplayId(params) {
+    // Return a human-readable label for the session, if available.
+  },
+};
 ```
 
-## Step 6: Register (Built-in Only)
+Use `clearSession: true` when the runtime reports that the previous session cannot be resumed.
 
-Add the adapter to all three registries:
+---
+
+## Skills Injection
+
+Your adapter should make Paperclip skills visible to the runtime without polluting the user's workspace.
+
+Preferred options:
+
+1. Create a temporary skills directory and pass it through a CLI flag.
+2. Symlink into the runtime's global skills location.
+3. Point the runtime at a managed skills directory with an environment variable.
+4. Fall back to prompt injection only when the runtime does not support anything better.
+
+The built-in local adapters already do this in their own runtime-specific way.
+
+---
+
+## UI Parser
+
+If your adapter needs richer transcript rendering than the generic shell parser, ship a self-contained `ui-parser.ts`.
+
+See:
+
+- [Adapter UI Parser Contract](adapter-ui-parser.md)
+
+For built-in adapters, the UI parser can live inside Paperclip source. For external adapters, it must be standalone and browser-safe.
+
+---
+
+## Registering Built-In Adapters
+
+Only built-in adapters should be added to the host registries:
 
 1. `server/src/adapters/registry.ts`
 2. `ui/src/adapters/registry.ts`
 3. `cli/src/adapters/registry.ts`
 
-For external adapters, registration is automatic — the plugin loader handles it.
+External adapters register themselves through the plugin loader instead.
 
-## Session Persistence
-
-If your agent runtime supports conversation continuity across heartbeats:
-
-1. Return `sessionParams` from `execute()` (e.g., `{ sessionId: "abc123" }`)
-2. Read `runtime.sessionParams` on the next wake to resume
-3. Optionally implement a `sessionCodec` for validation and display
-
-```ts
-export const sessionCodec: AdapterSessionCodec = {
-  deserialize(raw) { /* validate raw session data */ },
-  serialize(params) { /* serialize for storage */ },
-  getDisplayId(params) { /* human-readable session label */ },
-};
-```
-
-## Skills Injection
-
-Make Paperclip skills discoverable to your agent runtime without writing to the agent's working directory:
-
-1. **Best: tmpdir + flag** — create tmpdir, symlink skills, pass via CLI flag, clean up after
-2. **Acceptable: global config dir** — symlink to the runtime's global plugins directory
-3. **Acceptable: env var** — point a skills path env var at the repo's `skills/` directory
-4. **Last resort: prompt injection** — include skill content in the prompt template
+---
 
 ## Security
 
-- Treat agent output as untrusted (parse defensively, never execute)
-- Inject secrets via environment variables, not prompts
-- Configure network access controls if the runtime supports them
-- Always enforce timeout and grace period
-- The UI parser module runs in a browser sandbox — zero runtime imports, no side effects
+- Keep secrets in environment variables or secret refs, not in prompts.
+- Treat runtime output as untrusted input.
+- Enforce timeouts and grace periods.
+- Keep the UI parser free of DOM and Node APIs.
+
+---
 
 ## Next Steps
 
-- [External Adapters](external-adapters.md) — build a standalone adapter plugin
-- [UI Parser Contract](adapter-ui-parser.md) — ship a custom run-log parser
-- [How Agents Work](/guides/agent-developer/how-agents-work) — the heartbeat lifecycle
+- [External Adapters](external-adapters.md)
+- [Adapter UI Parser Contract](adapter-ui-parser.md)
+- [How Agents Work](../guides/agent-developer/how-agents-work.md)

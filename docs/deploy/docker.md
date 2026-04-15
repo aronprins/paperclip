@@ -1,32 +1,44 @@
 # Docker
 
-Run Paperclip in Docker without installing Node or pnpm locally.
+Use Docker when you want a self-contained Paperclip instance without installing Node or pnpm on the host machine.
+
+This page covers the quickstart image, the manual image build, and what persists between container restarts.
 
 ---
 
-## Compose Quickstart (Recommended)
+## Compose Quickstart
+
+The recommended path is the compose-based quickstart:
 
 ```sh
 docker compose -f docker/docker-compose.quickstart.yml up --build
 ```
 
-Open [http://localhost:3100](http://localhost:3100).
+Open the app at:
+
+```txt
+http://localhost:3100
+```
 
 Defaults:
 
-- Host port: `3100`
-- Data directory: `./data/docker-paperclip`
+- host port `3100`
+- data directory `./data/docker-paperclip`
 
-Override with environment variables:
+Override them with environment variables:
 
 ```sh
 PAPERCLIP_PORT=3200 PAPERCLIP_DATA_DIR=../data/pc \
   docker compose -f docker/docker-compose.quickstart.yml up --build
 ```
 
-**Note:** `PAPERCLIP_DATA_DIR` is resolved relative to the compose file (`docker/`), so `../data/pc` maps to `data/pc` in the project root.
+> **Note:** `PAPERCLIP_DATA_DIR` is resolved relative to the compose file in `docker/`, so `../data/pc` maps to `data/pc` in the repository root.
 
-## Manual Docker Build
+---
+
+## Manual Image Build
+
+If you want a plain container run instead of compose, build and start the image manually:
 
 ```sh
 docker build -t paperclip-local .
@@ -38,23 +50,31 @@ docker run --name paperclip \
   paperclip-local
 ```
 
-## Data Persistence
+Use this when you want tight control over the container lifecycle or are embedding Paperclip into a larger Docker workflow.
 
-All data is persisted under the bind mount (`./data/docker-paperclip`):
+---
 
-- Embedded PostgreSQL data
-- Uploaded assets
-- Local secrets key
-- Agent workspace data
+## What Persists
 
-## Claude and Codex Adapters in Docker
+All persistent data lives under the bind mount:
 
-The Docker image pre-installs:
+- embedded PostgreSQL data
+- uploaded assets
+- the local secrets key
+- agent workspace data
 
-- `claude` (Anthropic Claude Code CLI)
-- `codex` (OpenAI Codex CLI)
+If the bind mount is removed, the instance starts fresh on the next run.
 
-Pass API keys to enable local adapter runs inside the container:
+---
+
+## LLM Adapter Support
+
+The Docker image pre-installs the local CLI tools used by the built-in local adapters:
+
+- `claude` for `claude_local`
+- `codex` for `codex_local`
+
+If you want those adapters to run inside the container, pass the relevant API keys:
 
 ```sh
 docker run --name paperclip \
@@ -67,4 +87,6 @@ docker run --name paperclip \
   paperclip-local
 ```
 
-Without API keys, the app runs normally — adapter environment checks will surface missing prerequisites.
+Without those keys, the app still runs. The adapter environment test will simply report missing prerequisites for the relevant adapter.
+
+> **Tip:** If you are testing adapter behavior inside Docker, verify the bind mount first. Most surprising failures come from lost state, not the container image itself.

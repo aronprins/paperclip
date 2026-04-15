@@ -1,71 +1,93 @@
-# Secrets Management
+# Secrets
 
-Paperclip encrypts secrets at rest using a local master key. Agent environment variables that contain sensitive values (API keys, tokens) are stored as encrypted secret references.
+Secrets keep sensitive values out of adapter configs while still making them available to agents at runtime.
+
+Use this page when you need to understand the default secret provider, configure strict mode, or migrate inline credentials into managed secret references.
 
 ---
 
-## Default Provider: `local_encrypted`
+## Default Provider
 
-Secrets are encrypted with a local master key stored at:
+The built-in provider is `local_encrypted`.
 
-```
+It stores secret material using a local master key at:
+
+```txt
 ~/.paperclip/instances/default/secrets/master.key
 ```
 
-This key is auto-created during onboarding. The key never leaves your machine.
+That key is created automatically during onboarding and remains local to the machine unless you override it.
 
-## Configuration
+> **Note:** The default provider is designed for local and single-machine use. For other deployment patterns, keep the same secret model but verify the surrounding infrastructure carefully.
 
-### CLI Setup
+---
 
-Onboarding writes default secrets config:
+## Configure Secrets
+
+The normal setup flow is:
 
 ```sh
 pnpm paperclipai onboard
 ```
 
-Update secrets settings:
+To update an existing install:
 
 ```sh
 pnpm paperclipai configure --section secrets
 ```
 
-Validate secrets config:
+To validate the configuration:
 
 ```sh
 pnpm paperclipai doctor
 ```
 
-### Environment Overrides
+---
 
-| Variable | Description |
-|----------|-------------|
+## Environment Overrides
+
+| Variable | Meaning |
+|---|---|
 | `PAPERCLIP_SECRETS_MASTER_KEY` | 32-byte key as base64, hex, or raw string |
-| `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | Custom key file path |
-| `PAPERCLIP_SECRETS_STRICT_MODE` | Set to `true` to enforce secret refs |
+| `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | Custom path to the local key file |
+| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for sensitive env vars |
 
-## Strict Mode
-
-When strict mode is enabled, sensitive env keys (matching `*_API_KEY`, `*_TOKEN`, `*_SECRET`) must use secret references instead of inline plain values.
+Enable strict mode with:
 
 ```sh
 PAPERCLIP_SECRETS_STRICT_MODE=true
 ```
 
-Recommended for any deployment beyond local trusted.
+Use strict mode when you want to prevent new inline sensitive values from entering configs.
 
-## Migrating Inline Secrets
+---
 
-If you have existing agents with inline API keys in their config, migrate them to encrypted secret refs:
+## Strict Mode
+
+When strict mode is on, sensitive env keys such as `*_API_KEY`, `*_TOKEN`, and `*_SECRET` must use secret references instead of inline plaintext.
+
+This is the safer choice for anything beyond a local trusted install.
+
+> **Warning:** Strict mode blocks new inline sensitive values. It does not automatically migrate what is already stored.
+
+---
+
+## Migrate Inline Secrets
+
+If existing agent configs still contain inline API keys or tokens, migrate them into managed secrets:
 
 ```sh
-pnpm secrets:migrate-inline-env         # dry run
-pnpm secrets:migrate-inline-env --apply # apply migration
+pnpm secrets:migrate-inline-env
+pnpm secrets:migrate-inline-env --apply
 ```
 
-## Secret References in Agent Config
+Run the command without `--apply` first if you want a dry run.
 
-Agent environment variables use secret references:
+---
+
+## Secret References In Agent Config
+
+Adapter environment variables should reference a secret instead of embedding plaintext:
 
 ```json
 {
@@ -79,4 +101,8 @@ Agent environment variables use secret references:
 }
 ```
 
-The server resolves and decrypts these at runtime, injecting the real value into the agent process environment.
+At runtime, the server resolves the secret, decrypts it through the configured provider, and injects the plaintext into the agent process environment.
+
+Use `version: "latest"` for values you expect to rotate. Pin a numeric version only when you need a fixed historical value.
+
+> **Tip:** If a config value would be unsafe to print in a log, it should probably be a secret reference.

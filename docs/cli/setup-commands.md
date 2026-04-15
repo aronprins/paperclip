@@ -1,120 +1,179 @@
 # Setup Commands
 
-Instance setup and diagnostics commands.
+Use these commands when you are bootstrapping a local Paperclip instance, repairing a configuration, or changing the instance-level settings that the server runs on.
+
+They are different from control-plane commands:
+
+- setup commands change how Paperclip is installed or launched
+- control-plane commands manage the company and its work
+
+---
+
+## When To Use
+
+Use setup commands when you need to:
+
+- create the initial config and local data directories
+- validate database, storage, secrets, or host configuration
+- change deployment mode, storage provider, or secrets settings
+- allow a private hostname in authenticated/private mode
+
+Do not use them for task, agent, or approval management. Those belong to [Control-Plane Commands](control-plane-commands.md).
 
 ---
 
 ## `paperclipai run`
 
-One-command bootstrap and start:
+The quickest way to start Paperclip locally.
 
 ```sh
 pnpm paperclipai run
 ```
 
-Does:
+What it does:
 
-1. Auto-onboards if config is missing
-2. Runs `paperclipai doctor` with repair enabled
-3. Starts the server when checks pass
+1. resolves the active instance and config
+2. runs `paperclipai doctor` with repair enabled by default
+3. starts the server when the checks pass
 
-Choose a specific instance:
+Use this when you want a single command that bootstraps and launches a healthy local instance.
 
 ```sh
 pnpm paperclipai run --instance dev
+pnpm paperclipai run --data-dir ./tmp/paperclip-dev
 ```
+
+> **Tip:** If the config file does not exist yet, `run` will trigger onboarding interactively in a terminal session. In non-interactive environments, run `paperclipai onboard` first.
+
+---
 
 ## `paperclipai onboard`
 
-Interactive first-time setup:
+Interactive first-time setup.
 
 ```sh
 pnpm paperclipai onboard
 ```
 
-If Paperclip is already configured, rerunning `onboard` keeps the existing config in place. Use `paperclipai configure` to change settings on an existing install.
+Use this when you are creating a new local install or want to rebuild the config from guided prompts.
 
-First prompt:
+The first prompt offers two paths:
 
-1. `Quickstart` (recommended): local defaults (embedded database, no LLM provider, local disk storage, default secrets)
-2. `Advanced setup`: full interactive configuration
+- `Quickstart` for local defaults: embedded database, local disk storage, and default secrets
+- `Advanced setup` for explicit configuration of server, database, logging, storage, secrets, and related options
 
-Start immediately after onboarding:
+Useful forms:
 
 ```sh
 pnpm paperclipai onboard --run
-```
-
-Non-interactive defaults + immediate start (opens browser on server listen):
-
-```sh
 pnpm paperclipai onboard --yes
 ```
 
-On an existing install, `--yes` now preserves the current config and just starts Paperclip with that setup.
+`--run` starts the server after onboarding.
+`--yes` accepts the defaults non-interactively and then starts Paperclip.
+
+> **Note:** If Paperclip is already configured, rerunning `onboard` preserves the existing config unless you are intentionally starting over with a clean instance.
+
+---
 
 ## `paperclipai doctor`
 
-Health checks with optional auto-repair:
+Health checks with optional repair.
 
 ```sh
 pnpm paperclipai doctor
 pnpm paperclipai doctor --repair
 ```
 
-Validates:
+Use `doctor` when you want to verify an existing install before starting the server or after changing config.
 
-- Server configuration
-- Database connectivity
-- Secrets adapter configuration
-- Storage configuration
-- Missing key files
+It checks:
+
+- configuration validity
+- deployment/auth mode compatibility
+- agent JWT secrets
+- secrets adapter configuration
+- storage configuration
+- database connectivity
+- logging and port checks
+
+> **Warning:** `--repair` can create or update local files when the check knows how to fix the problem. Review the output before rerunning in a shared or production-like environment.
+
+---
 
 ## `paperclipai configure`
 
-Update configuration sections:
+Update instance configuration sections.
 
 ```sh
 pnpm paperclipai configure --section server
-pnpm paperclipai configure --section secrets
+pnpm paperclipai configure --section database
 pnpm paperclipai configure --section storage
+pnpm paperclipai configure --section secrets
+pnpm paperclipai configure --section logging
+pnpm paperclipai configure --section llm
 ```
+
+Use this command when you want to change how the instance runs without rebuilding the install from scratch.
+
+Common cases:
+
+- switch deployment mode or host binding
+- change database mode or backup settings
+- change the storage provider
+- update secrets provider or strict mode
+
+---
 
 ## `paperclipai env`
 
-Show resolved environment configuration:
+Show the resolved environment configuration.
 
 ```sh
 pnpm paperclipai env
 ```
 
+This is useful when you want to inspect what the instance will actually see after config, defaults, and environment overrides are merged.
+
+---
+
 ## `paperclipai allowed-hostname`
 
-Allow a private hostname for authenticated/private mode:
+Allow a private hostname for authenticated/private mode.
 
 ```sh
 pnpm paperclipai allowed-hostname my-tailscale-host
 ```
 
-## Local Storage Paths
+Use this when Paperclip rejects a hostname that should be trusted on a private network.
 
-| Data | Default Path |
-|------|-------------|
+The command updates the local config and the new hostname takes effect after a server restart.
+
+> **Note:** This is enforced only in authenticated/private mode.
+
+---
+
+## Local Paths
+
+The default local instance root is `~/.paperclip/instances/default`.
+
+| Data | Path |
+|---|---|
 | Config | `~/.paperclip/instances/default/config.json` |
 | Database | `~/.paperclip/instances/default/db` |
 | Logs | `~/.paperclip/instances/default/logs` |
 | Storage | `~/.paperclip/instances/default/data/storage` |
 | Secrets key | `~/.paperclip/instances/default/secrets/master.key` |
 
-Override with:
+If you need a different local root, set the instance env vars:
 
 ```sh
 PAPERCLIP_HOME=/custom/home PAPERCLIP_INSTANCE_ID=dev pnpm paperclipai run
 ```
 
-Or pass `--data-dir` directly on any command:
+---
 
-```sh
-pnpm paperclipai run --data-dir ./tmp/paperclip-dev
-pnpm paperclipai doctor --data-dir ./tmp/paperclip-dev
-```
+## Next Step
+
+- [Control-Plane Commands](control-plane-commands.md) for issues, agents, companies, approvals, and activity
+- [Deployment Overview](../deploy/overview.md) for the runtime modes that shape setup behavior

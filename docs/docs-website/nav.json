@@ -60,11 +60,11 @@
         { "title": "Claude Local",           "file": "../adapters/claude-local.md" },
         { "title": "Codex Local",            "file": "../adapters/codex-local.md" },
         { "title": "Gemini Local",           "file": "../adapters/gemini-local.md" },
-        { "title": "Process Adapter",        "file": "../adapters/process.md" },
-        { "title": "HTTP Adapter",           "file": "../adapters/http.md" },
+        { "title": "Process",                "file": "../adapters/process.md" },
+        { "title": "HTTP",                   "file": "../adapters/http.md" },
         { "title": "External Adapters",      "file": "../adapters/external-adapters.md" },
         { "title": "Creating an Adapter",    "file": "../adapters/creating-an-adapter.md" },
-        { "title": "Adapter UI Parser",      "file": "../adapters/adapter-ui-parser.md" }
+        { "title": "UI Parser Contract",     "file": "../adapters/adapter-ui-parser.md" }
       ]
     },
     {

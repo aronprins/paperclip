@@ -469,6 +469,57 @@
     .tab-panel.active { display: block; }
     .tab-panel > *:last-child { margin-bottom: 0; }
 
+    .tabs-container.code-tabs {
+      border: 1.5px solid var(--stone);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--void);
+      margin-bottom: 24px;
+    }
+
+    .tabs-container.code-tabs .tabs-bar {
+      gap: 6px;
+      padding: 8px 10px 0;
+      border-bottom: 1.5px solid var(--stone);
+      background: color-mix(in srgb, var(--void) 88%, var(--stone) 12%);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs-container.code-tabs .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .tabs-container.code-tabs .tab-btn {
+      padding: 6px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px 8px 0 0;
+      font-size: 12px;
+      color: #aeb6cf;
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .tabs-container.code-tabs .tab-btn:hover {
+      color: #eef2ff;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .tabs-container.code-tabs .tab-btn.active {
+      color: #f8fafc;
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.08);
+      border-bottom-color: rgba(255,255,255,0.06);
+    }
+
+    .tabs-container.code-tabs .tab-panel {
+      padding: 0;
+    }
+
+    .tabs-container.code-tabs .tab-panel > pre {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+    }
+
     /* Prev/next */
     #page-nav {
       display: flex;
@@ -1554,6 +1605,16 @@ function postProcessTabs(root) {
   root.querySelectorAll('.tabs-container').forEach(c => {
     const btns   = c.querySelectorAll('.tab-btn');
     const panels = c.querySelectorAll('.tab-panel');
+    const isCodeTabs = panels.length > 0 && [...panels].every((panel) => {
+      const meaningfulChildren = [...panel.children].filter((child) => {
+        if (!(child instanceof HTMLElement)) return false;
+        return child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE';
+      });
+      return meaningfulChildren.length === 1 && meaningfulChildren[0].tagName === 'PRE';
+    });
+
+    if (isCodeTabs) c.classList.add('code-tabs');
+
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         const name = btn.dataset.tab;

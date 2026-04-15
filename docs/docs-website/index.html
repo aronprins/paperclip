@@ -352,6 +352,11 @@
       transform: translateY(-1px);
     }
 
+    #article .heading-anchor.is-copied {
+      color: var(--green);
+      opacity: 1;
+    }
+
     #article strong { color: var(--ink); font-weight: 600; }
     #article em { font-style: italic; }
 
@@ -1222,6 +1227,10 @@ function getPageHeadingUrl(page, headingId) {
   return getRouteUrl(buildRouteValue(page, headingId));
 }
 
+function getAbsoluteUrl(path) {
+  return new URL(path, window.location.origin).toString();
+}
+
 function getLegacyRoute() {
   const url = new URL(window.location.href);
   return url.searchParams.get('page') || location.hash.slice(1);
@@ -1282,6 +1291,34 @@ function focusHeading(heading) {
   heading.addEventListener('animationend', () => heading.classList.remove('heading-highlight'), { once: true });
 }
 
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'absolute';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  const didCopy = document.execCommand('copy');
+  document.body.removeChild(textarea);
+  if (!didCopy) throw new Error('Clipboard copy failed');
+}
+
+function showCopiedState(anchor) {
+  anchor.classList.add('is-copied');
+  const previousLabel = anchor.getAttribute('aria-label') || 'Copy section link';
+  anchor.setAttribute('aria-label', 'Copied section link');
+  window.setTimeout(() => {
+    anchor.classList.remove('is-copied');
+    anchor.setAttribute('aria-label', previousLabel);
+  }, 1200);
+}
+
 function findHeadingTarget(article, targetHeading) {
   if (!targetHeading) return null;
   const normalizedTarget = normalizeRouteKey(targetHeading);
@@ -1309,12 +1346,20 @@ function decorateHeadings(article, file) {
     const anchor = document.createElement('a');
     anchor.className = 'heading-anchor';
     anchor.href = getPageHeadingUrl(page, nextId);
-    anchor.setAttribute('aria-label', `Link to section ${heading.textContent.trim()}`);
+    anchor.setAttribute('aria-label', `Copy link to section ${heading.textContent.trim()}`);
+    anchor.setAttribute('title', 'Copy section link');
     anchor.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 1 0 7.07 7.07L13 19"/></svg>`;
-    anchor.addEventListener('click', e => {
+    anchor.addEventListener('click', async e => {
       e.preventDefault();
-      history.pushState(null, '', getPageHeadingUrl(page, nextId));
+      const nextUrl = getPageHeadingUrl(page, nextId);
+      history.pushState(null, '', nextUrl);
       focusHeading(heading);
+      try {
+        await copyText(getAbsoluteUrl(nextUrl));
+        showCopiedState(anchor);
+      } catch (error) {
+        console.error('Failed to copy section link', error);
+      }
     });
     heading.appendChild(anchor);
   });

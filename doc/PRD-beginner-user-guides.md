@@ -237,7 +237,7 @@ The renderer is a single `index.html` with:
 - **highlight.js** (CDN) — code syntax highlighting
 - **No framework** — vanilla JS + CSS only
 - Loads markdown files via `fetch()` from the `docs/` tree (requires a local server rooted at `docs/`)
-- State is stored in the URL hash (`#guides/installation.md`) so deep-links and browser back/forward work
+- State is stored in pretty pathname routes (for example `/docs-website/installation` and `/docs-website/api/issues`) so deep-links and browser back/forward work
 
 ---
 
@@ -1225,7 +1225,7 @@ Screenshots are taken using the `dev-browser` skill against a running local Pape
 - [ ] Implement code block syntax highlighting (highlight.js)
 - [ ] Implement image lightbox
 - [ ] Implement prev/next footer navigation
-- [ ] Implement URL-hash-based routing
+- [ ] Implement pretty pathname routing
 - [ ] Add basic search (filter sidebar titles)
 
 ### Phase 3 — Screenshots

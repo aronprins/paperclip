@@ -260,6 +260,11 @@
       line-height: 1.15;
     }
 
+    #article h1,
+    #article h2 {
+      position: relative;
+    }
+
     #article h2 {
       font-family: var(--font-serif);
       font-size: 20px;
@@ -284,6 +289,13 @@
       scroll-margin-top: calc(var(--sticky-top) + 24px);
     }
 
+    #article h4,
+    #article h5,
+    #article h6 {
+      position: relative;
+      scroll-margin-top: calc(var(--sticky-top) + 24px);
+    }
+
     #article h4 {
       font-size: 11px;
       font-weight: 600;
@@ -304,6 +316,41 @@
     }
 
     #article a:hover { border-bottom-color: var(--ink); }
+
+    #article .heading-anchor {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      margin-left: 8px;
+      border-bottom: none;
+      color: var(--ash);
+      opacity: 0;
+      vertical-align: middle;
+      transition: opacity var(--transition), color var(--transition), transform var(--transition);
+    }
+
+    #article .heading-anchor svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    #article h1:hover .heading-anchor,
+    #article h2:hover .heading-anchor,
+    #article h3:hover .heading-anchor,
+    #article h4:hover .heading-anchor,
+    #article h5:hover .heading-anchor,
+    #article h6:hover .heading-anchor,
+    #article .heading-anchor:focus-visible {
+      opacity: 1;
+    }
+
+    #article .heading-anchor:hover,
+    #article .heading-anchor:focus-visible {
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
 
     #article strong { color: var(--ink); font-weight: 600; }
     #article em { font-style: italic; }
@@ -1105,6 +1152,16 @@ let navData     = null;
 let allPages    = [];
 let currentFile = null;
 let tocObserver = null;
+const APP_DIR_NAME = 'docs-website';
+const APP_BASE_PATH = (() => {
+  const marker = `/${APP_DIR_NAME}`;
+  const pathname = window.location.pathname;
+  const markerIndex = pathname.indexOf(marker);
+  if (markerIndex === -1) return '';
+  return pathname.slice(0, markerIndex + marker.length);
+})();
+const APP_BASE_URL = new URL(`${APP_BASE_PATH.replace(/\/$/, '')}/`, window.location.origin);
+const APP_SHELL_URL = new URL('index.html', APP_BASE_URL);
 
 /* ─── Screenshot src resolver ───────────────────────────────────────────── */
 function resolveScreenshotSrc(src) {
@@ -1112,7 +1169,7 @@ function resolveScreenshotSrc(src) {
   const match = src.match(/images\/([^/]+\/[^/]+\.png)$/);
   if (!match) return src;
   const theme = document.documentElement.dataset.theme || 'light';
-  return `../user-guides/screenshots/${theme}/${match[1]}`;
+  return resolveContentUrl(`../user-guides/screenshots/${theme}/${match[1]}`);
 }
 
 function normalizeDocPath(path) {
@@ -1130,6 +1187,137 @@ function normalizeDocPath(path) {
     normalized.push(segment);
   }
   return normalized.join('/');
+}
+
+function normalizeRouteKey(value) {
+  return value.replace(/^\/+/, '').replace(/\/+$/, '');
+}
+
+function derivePageSlug(file) {
+  const normalized = normalizeDocPath(file).replace(/^(\.\.\/)+/, '');
+  const withoutExtension = normalized.replace(/\.md$/, '');
+  if (withoutExtension.startsWith('user-guides/guides/')) {
+    return withoutExtension.slice('user-guides/guides/'.length);
+  }
+  return withoutExtension;
+}
+
+function resolveContentUrl(path) {
+  return new URL(path, APP_SHELL_URL).toString();
+}
+
+function buildRouteValue(page, headingId = null) {
+  return headingId ? `${page.slug}/${headingId}` : page.slug;
+}
+
+function getRouteUrl(routeValue) {
+  return new URL(normalizeRouteKey(routeValue), APP_BASE_URL).pathname;
+}
+
+function getPageUrl(page) {
+  return getRouteUrl(buildRouteValue(page));
+}
+
+function getPageHeadingUrl(page, headingId) {
+  return getRouteUrl(buildRouteValue(page, headingId));
+}
+
+function getLegacyRoute() {
+  const url = new URL(window.location.href);
+  return url.searchParams.get('page') || location.hash.slice(1);
+}
+
+function getPathRoute() {
+  const relativePath = normalizeRouteKey(window.location.pathname.slice(APP_BASE_PATH.length));
+  if (!relativePath || relativePath === 'index.html') return '';
+  return relativePath.replace(/\/index\.html$/, '');
+}
+
+function getCurrentRoute() {
+  return getPathRoute() || getLegacyRoute();
+}
+
+function slugifyHeadingText(text) {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function findPageByRoute(route) {
+  const decoded = decodeURIComponent((route || '').trim());
+  const normalizedRoute = normalizeRouteKey(decoded);
+  if (!normalizedRoute) return null;
+  return allPages.find(page =>
+    page.slug === normalizedRoute ||
+    page.file === decoded ||
+    normalizeDocPath(page.file) === normalizeDocPath(decoded)
+  ) || null;
+}
+
+function parseRoute(route) {
+  const decoded = decodeURIComponent((route || '').trim());
+  const normalizedRoute = normalizeRouteKey(decoded);
+  if (!normalizedRoute) return { page: null, headingId: null };
+
+  const exactPage = findPageByRoute(normalizedRoute);
+  if (exactPage) return { page: exactPage, headingId: null };
+
+  const page = [...allPages]
+    .sort((a, b) => b.slug.length - a.slug.length)
+    .find(candidate => normalizedRoute.startsWith(`${candidate.slug}/`));
+  if (!page) return { page: null, headingId: null };
+
+  const headingId = normalizeRouteKey(normalizedRoute.slice(page.slug.length + 1));
+  return { page, headingId: headingId || null };
+}
+
+function focusHeading(heading) {
+  const stickyOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')) || 92;
+  const top = heading.getBoundingClientRect().top + window.scrollY - stickyOffset - 20;
+  window.scrollTo({ top, behavior: 'smooth' });
+  heading.classList.add('heading-highlight');
+  heading.addEventListener('animationend', () => heading.classList.remove('heading-highlight'), { once: true });
+}
+
+function findHeadingTarget(article, targetHeading) {
+  if (!targetHeading) return null;
+  const normalizedTarget = normalizeRouteKey(targetHeading);
+  const headings = [...article.querySelectorAll('h1, h2, h3, h4, h5, h6')];
+  return (
+    headings.find(heading => heading.id === normalizedTarget) ||
+    headings.find(heading => heading.textContent.trim().toLowerCase() === targetHeading.toLowerCase()) ||
+    null
+  );
+}
+
+function decorateHeadings(article, file) {
+  const page = allPages.find(candidate => candidate.file === file);
+  if (!page) return;
+
+  const usedIds = new Set();
+  article.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+    const baseId = slugifyHeadingText(heading.textContent) || heading.tagName.toLowerCase();
+    let nextId = baseId;
+    let suffix = 2;
+    while (usedIds.has(nextId)) nextId = `${baseId}-${suffix++}`;
+    usedIds.add(nextId);
+    heading.id = nextId;
+
+    const anchor = document.createElement('a');
+    anchor.className = 'heading-anchor';
+    anchor.href = getPageHeadingUrl(page, nextId);
+    anchor.setAttribute('aria-label', `Link to section ${heading.textContent.trim()}`);
+    anchor.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 1 0 7.07 7.07L13 19"/></svg>`;
+    anchor.addEventListener('click', e => {
+      e.preventDefault();
+      history.pushState(null, '', getPageHeadingUrl(page, nextId));
+      focusHeading(heading);
+    });
+    heading.appendChild(anchor);
+  });
 }
 
 /* ─── Theme toggle wiring ───────────────────────────────────────────────── */
@@ -1164,7 +1352,7 @@ let searchFocusedIdx = -1;
 async function buildSearchIndex() {
   const tasks = allPages.map(async page => {
     try {
-      const res = await fetch(page.file);
+      const res = await fetch(resolveContentUrl(page.file));
       if (!res.ok) return null;
       const md = await res.text();
       // Extract headings
@@ -1323,23 +1511,29 @@ function initSearch() {
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
 async function init() {
   try {
-    const res = await fetch('nav.json');
+    const res = await fetch(resolveContentUrl('nav.json'));
     if (!res.ok) throw new Error(`nav.json ${res.status}`);
     navData = await res.json();
   } catch (e) {
-    showError('Could not load nav.json. Serve docs/docs-website with python3 -m http.server 8080', e.message);
+    showError('Could not load nav.json. Check docs-website hosting and rewrite configuration.', e.message);
     return;
   }
 
+  buildFlatList();
+  document.getElementById('logo').href = getRouteUrl('');
+  document.getElementById('mobile-drawer-logo').href = getRouteUrl('');
   buildSectionTabs();
   buildMobileDrawer();
-  buildFlatList();
   initSearch();
   buildSearchIndex(); // background — no await
 
-  const hash = location.hash.slice(1);
-  const initial = allPages.find(p => encodeURIComponent(p.file) === hash) || allPages[0];
-  if (initial) loadPage(initial.file);
+  const pathRoute = getPathRoute();
+  const initialRoute = parseRoute(pathRoute || getLegacyRoute());
+  const initial = initialRoute.page || allPages[0];
+  if (!initial) return;
+
+  const historyMode = initialRoute.page ? 'replace' : 'preserve';
+  loadPage(initial.file, initialRoute.headingId, historyMode);
 }
 
 /* ─── Section tabs (header row 2) ──────────────────────────────────────── */
@@ -1390,7 +1584,7 @@ function buildMobileDrawer() {
       a.className = 'drawer-page-link';
       a.textContent = page.title;
       a.dataset.file = page.file;
-      a.href = '#' + encodeURIComponent(page.file);
+      a.href = getPageUrl(page);
       a.addEventListener('click', e => {
         e.preventDefault();
         loadPage(page.file);
@@ -1463,6 +1657,7 @@ function buildSubnav(sectionTitle) {
     a.className = 'subnav-link';
     a.textContent = page.title;
     a.dataset.file = page.file;
+    a.href = getPageUrl(page);
     a.addEventListener('click', e => { e.preventDefault(); loadPage(page.file); });
     subnav.appendChild(a);
   });
@@ -1471,18 +1666,31 @@ function buildSubnav(sectionTitle) {
 /* ─── Flat list ─────────────────────────────────────────────────────────── */
 function buildFlatList() {
   allPages = [];
-  navData.sections.forEach(s => s.pages.forEach(p => allPages.push({ ...p, sectionTitle: s.title })));
+  const slugCounts = new Map();
+  navData.sections.forEach(section => {
+    section.pages.forEach(page => {
+      const baseSlug = normalizeRouteKey(page.slug || derivePageSlug(page.file));
+      const seenCount = slugCounts.get(baseSlug) || 0;
+      page.slug = seenCount === 0 ? baseSlug : `${baseSlug}-${seenCount + 1}`;
+      slugCounts.set(baseSlug, seenCount + 1);
+      allPages.push({
+        ...page,
+        sectionTitle: section.title,
+      });
+    });
+  });
 }
 
 /* ─── Load page ─────────────────────────────────────────────────────────── */
-async function loadPage(file, targetHeading = null) {
+async function loadPage(file, targetHeading = null, historyMode = 'push') {
+  const page = allPages.find(candidate => candidate.file === file);
   currentFile = file;
   setActiveState(file);
   showLoading();
 
   let md;
   try {
-    const res = await fetch(file);
+    const res = await fetch(resolveContentUrl(file));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     md = await res.text();
   } catch (e) {
@@ -1495,24 +1703,22 @@ async function loadPage(file, targetHeading = null) {
   article.innerHTML = html;
   article.style.display = '';
 
+  decorateHeadings(article, file);
   postProcessCallouts(article);
   postProcessTabs(article);
   postProcessImages(article);
   postProcessInternalLinks(article);
 
   renderPageNav(file);
-  buildToc(article);
+  buildToc(article, file);
   hideLoading();
 
+  let resolvedHeadingId = null;
   if (targetHeading) {
-    const headings = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    const match = [...headings].find(h => h.textContent.trim().toLowerCase() === targetHeading.toLowerCase());
+    const match = findHeadingTarget(article, targetHeading);
     if (match) {
-      const stickyOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')) || 92;
-      const top = match.getBoundingClientRect().top + window.scrollY - stickyOffset - 20;
-      window.scrollTo({ top, behavior: 'smooth' });
-      match.classList.add('heading-highlight');
-      match.addEventListener('animationend', () => match.classList.remove('heading-highlight'), { once: true });
+      resolvedHeadingId = match.id;
+      focusHeading(match);
     } else {
       window.scrollTo(0, 0);
     }
@@ -1520,7 +1726,11 @@ async function loadPage(file, targetHeading = null) {
     window.scrollTo(0, 0);
   }
 
-  history.replaceState(null, '', '#' + encodeURIComponent(file));
+  if (page) {
+    const nextUrl = resolvedHeadingId ? getPageHeadingUrl(page, resolvedHeadingId) : getPageUrl(page);
+    if (historyMode === 'replace') history.replaceState(null, '', nextUrl);
+    else if (historyMode === 'push') history.pushState(null, '', nextUrl);
+  }
 }
 
 /* ─── Active state ──────────────────────────────────────────────────────── */
@@ -1628,9 +1838,10 @@ function postProcessTabs(root) {
 function postProcessImages(root) {
   root.querySelectorAll('img').forEach(img => {
     // Remap ../images/ paths to screenshots/{theme}/ and store original for theme swaps
-    const resolved = resolveScreenshotSrc(img.src);
-    if (resolved !== img.src) {
-      img.dataset.screenshot = img.src; // store original path
+    const rawSrc = img.getAttribute('src') || img.src;
+    const resolved = resolveScreenshotSrc(rawSrc);
+    if (resolved !== rawSrc) {
+      img.dataset.screenshot = rawSrc; // store original path
       img.src = resolved;
     }
     img.addEventListener('error', () => {
@@ -1645,18 +1856,21 @@ function postProcessImages(root) {
 function postProcessInternalLinks(root) {
   root.querySelectorAll('a[href]').forEach(a => {
     const href = a.getAttribute('href');
-    if (href && href.endsWith('.md') && !href.startsWith('http')) {
+    if (!href || href.startsWith('http') || href.startsWith('#')) return;
+
+    const [docHref, headingHref] = href.split('#');
+    if (docHref && docHref.endsWith('.md')) {
       a.addEventListener('click', e => {
         e.preventDefault();
         const baseDir = currentFile.replace(/\/[^/]+$/, '/');
-        loadPage(normalizeDocPath(baseDir + href));
+        loadPage(normalizeDocPath(baseDir + docHref), headingHref || null);
       });
     }
   });
 }
 
 /* ─── Table of contents ─────────────────────────────────────────────────── */
-function buildToc(article) {
+function buildToc(article, file) {
   if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
   const list  = document.getElementById('toc-list');
   const aside = document.getElementById('toc');
@@ -1665,22 +1879,20 @@ function buildToc(article) {
   const headings = [...article.querySelectorAll('h2, h3')];
   if (headings.length < 2) { aside.classList.remove('has-items'); return; }
 
-  const used = {};
+  const page = allPages.find(candidate => candidate.file === file);
   headings.forEach(h => {
-    if (!h.id) {
-      let base = h.textContent.trim().toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
-      let id = base, n = 2;
-      while (used[id]) id = `${base}-${n++}`;
-      used[id] = true;
-      h.id = id;
-    }
     const li = document.createElement('li');
     li.className = `toc-item level-${h.tagName === 'H2' ? '2' : '3'}`;
     const a = document.createElement('a');
     a.className = 'toc-link';
     a.textContent = h.textContent.trim();
-    a.href = '#' + h.id;
-    a.addEventListener('click', e => { e.preventDefault(); h.scrollIntoView({ behavior: 'smooth' }); });
+    a.dataset.headingId = h.id;
+    a.href = page ? getPageHeadingUrl(page, h.id) : `#${h.id}`;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      if (page) history.pushState(null, '', getPageHeadingUrl(page, h.id));
+      focusHeading(h);
+    });
     li.appendChild(a);
     list.appendChild(li);
   });
@@ -1692,7 +1904,7 @@ function buildToc(article) {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const id = entry.target.id;
-        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+        links.forEach(l => l.classList.toggle('active', l.dataset.headingId === id));
       }
     });
   }, { rootMargin: `-${52 + 40 + 20}px 0px -68% 0px`, threshold: 0 });
@@ -1757,9 +1969,17 @@ function escapeHtml(s) {
 function escapeAttr(s) { return s.replace(/"/g,'&quot;'); }
 
 window.addEventListener('hashchange', () => {
-  const hash = location.hash.slice(1);
-  const page = allPages.find(p => encodeURIComponent(p.file) === hash);
-  if (page && page.file !== currentFile) loadPage(page.file);
+  const route = parseRoute(location.hash.slice(1));
+  if (route.page) loadPage(route.page.file, route.headingId, 'replace');
+});
+
+window.addEventListener('popstate', () => {
+  const route = parseRoute(getCurrentRoute());
+  if (route.page) {
+    loadPage(route.page.file, route.headingId, 'replace');
+    return;
+  }
+  if (allPages[0]) loadPage(allPages[0].file, null, 'preserve');
 });
 
 init();

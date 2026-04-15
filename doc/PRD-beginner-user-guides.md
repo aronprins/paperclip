@@ -70,48 +70,44 @@ Produce a complete set of beginner-friendly user guides that:
 
 ## 4. File Structure
 
-All new beginner guide content lives under a new top-level directory:
+The custom docs viewer and the guide content live under `docs/`, with the UI shell separated from the markdown and screenshot assets:
 
 ```
-user-guides/
-├── index.html              ← single-file HTML renderer (see section 5)
-├── nav.json                ← navigation manifest (sidebar structure)
-├── images/                 ← all screenshots
-│   ├── desktop/
-│   ├── onboarding/
-│   ├── dashboard/
-│   ├── agents/
-│   ├── tasks/
-│   ├── approvals/
-│   ├── costs/
-│   └── org/
-└── guides/
-    ├── what-is-paperclip.md
-    ├── key-concepts.md
-    ├── glossary.md
-    ├── installation.md
-    ├── your-first-company.md
-    ├── your-first-agent.md
-    ├── watching-agents-work.md
-    ├── dashboard.md
-    ├── managing-tasks.md
-    ├── approvals.md
-    ├── costs-and-budgets.md
-    ├── activity-log.md
-    ├── org-structure.md
-    ├── delegation.md
-    ├── agent-adapters.md
-    ├── execution-workspaces.md
-    ├── skills.md
-    ├── export-import.md
-    └── terminal-setup.md
+docs/
+├── docs-website/
+│   ├── index.html          ← single-file HTML renderer (see section 5)
+│   └── nav.json            ← navigation manifest (sidebar structure)
+└── user-guides/
+    ├── screenshots/
+    │   ├── dark/
+    │   └── light/
+    └── guides/
+        ├── what-is-paperclip.md
+        ├── key-concepts.md
+        ├── glossary.md
+        ├── installation.md
+        ├── your-first-company.md
+        ├── your-first-agent.md
+        ├── watching-agents-work.md
+        ├── dashboard.md
+        ├── managing-tasks.md
+        ├── approvals.md
+        ├── costs-and-budgets.md
+        ├── activity-log.md
+        ├── org-structure.md
+        ├── delegation.md
+        ├── agent-adapters.md
+        ├── execution-workspaces.md
+        ├── skills.md
+        ├── export-import.md
+        └── terminal-setup.md
 ```
 
 ---
 
 ## 5. HTML Renderer
 
-A single `index.html` file at `user-guides/index.html` serves as the documentation viewer. It has no build step and no dependencies beyond what's loaded from a CDN. Opening the file in any browser should render the full documentation site.
+A single `index.html` file at `docs/docs-website/index.html` serves as the documentation viewer. It has no build step and no dependencies beyond what's loaded from a CDN. It should be served from the `docs/` directory so sibling content like `docs/user-guides/` and `docs/api/` can be fetched by the browser.
 
 ### 5.1 Design requirements
 
@@ -180,6 +176,8 @@ Content for the terminal path...
 
 ### 5.5 nav.json format
 
+`nav.json` lives next to the renderer in `docs/docs-website/`, and each `file` entry is resolved relative to that directory. In practice that means beginner guides use `../user-guides/guides/...` paths and API pages use `../api/...` paths.
+
 ```json
 {
   "sections": [
@@ -238,7 +236,7 @@ The renderer is a single `index.html` with:
 - **marked.js** (CDN) — markdown → HTML parsing
 - **highlight.js** (CDN) — code syntax highlighting
 - **No framework** — vanilla JS + CSS only
-- Loads markdown files via `fetch()` (requires a local server or file:// with CORS relaxed; a `README` in the directory explains `npx serve .` as the one-liner to view it)
+- Loads markdown files via `fetch()` from the `docs/` tree (requires a local server rooted at `docs/`)
 - State is stored in the URL hash (`#guides/installation.md`) so deep-links and browser back/forward work
 
 ---
@@ -1206,7 +1204,7 @@ Screenshots are taken using the `dev-browser` skill against a running local Pape
 
 3. **Existing board-operator guides**: Should `docs/guides/board-operator/` pages be replaced once the new guides are published, or kept in parallel? Recommendation: replace and update internal links.
 
-4. **HTML renderer hosting**: Where does `user-guides/index.html` get served from? Options: (a) served from the running Paperclip instance as a static asset, (b) a separate GitHub Pages site, (c) just a local file for review purposes until Mintlify migration.
+4. **HTML renderer hosting**: Where does `docs/docs-website/index.html` get served from? Options: (a) served from the running Paperclip instance as a static asset, (b) a separate GitHub Pages site, (c) just a local server rooted at `docs/` for review purposes.
 
 5. **Dark mode screenshots**: Light mode only for v1, dark mode as a v2 enhancement?
 
@@ -1215,13 +1213,13 @@ Screenshots are taken using the `dev-browser` skill against a running local Pape
 ## 10. Implementation Plan
 
 ### Phase 1 — Structure (no content yet)
-- [ ] Create `user-guides/` directory with `guides/`, `images/` subdirectories
-- [ ] Create `nav.json` with full navigation manifest
+- [ ] Create `docs/user-guides/` directory with `guides/`, `screenshots/` subdirectories
+- [ ] Create `docs/docs-website/nav.json` with full navigation manifest
 - [ ] Create all 19 `.md` files with title and H2 section headings (no body content yet)
-- [ ] Create placeholder `index.html` that parses `nav.json` and renders the sidebar
+- [ ] Create placeholder `docs/docs-website/index.html` that parses `nav.json` and renders the sidebar
 
 ### Phase 2 — HTML renderer
-- [ ] Build `index.html` with sidebar, dark/light mode, and markdown rendering (marked.js)
+- [ ] Build `docs/docs-website/index.html` with sidebar, dark/light mode, and markdown rendering (marked.js)
 - [ ] Implement callout styling (`Note`, `Tip`, `Warning`, `Danger` prefixes)
 - [ ] Implement tab blocks (`<!-- tabs -->` convention)
 - [ ] Implement code block syntax highlighting (highlight.js)

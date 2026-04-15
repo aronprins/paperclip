@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paperclip User Guides</title>
+  <title>Paperclip Docs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -947,7 +947,7 @@
         </svg>
         <span id="logo-name">Paperclip</span>
         <div id="logo-divider"></div>
-        <span id="logo-sub">User Guides</span>
+        <span id="logo-sub">Documentation</span>
       </a>
       <!-- Search -->
       <div id="search-wrap">
@@ -1061,7 +1061,24 @@ function resolveScreenshotSrc(src) {
   const match = src.match(/images\/([^/]+\/[^/]+\.png)$/);
   if (!match) return src;
   const theme = document.documentElement.dataset.theme || 'light';
-  return `screenshots/${theme}/${match[1]}`;
+  return `../user-guides/screenshots/${theme}/${match[1]}`;
+}
+
+function normalizeDocPath(path) {
+  const normalized = [];
+  for (const segment of path.split('/')) {
+    if (!segment || segment === '.') continue;
+    if (segment === '..') {
+      if (normalized.length && normalized[normalized.length - 1] !== '..') {
+        normalized.pop();
+      } else {
+        normalized.push('..');
+      }
+      continue;
+    }
+    normalized.push(segment);
+  }
+  return normalized.join('/');
 }
 
 /* ─── Theme toggle wiring ───────────────────────────────────────────────── */
@@ -1259,7 +1276,7 @@ async function init() {
     if (!res.ok) throw new Error(`nav.json ${res.status}`);
     navData = await res.json();
   } catch (e) {
-    showError('Could not load nav.json. Run: python3 -m http.server 8080', e.message);
+    showError('Could not load nav.json. Serve docs/docs-website with python3 -m http.server 8080', e.message);
     return;
   }
 
@@ -1570,7 +1587,8 @@ function postProcessInternalLinks(root) {
     if (href && href.endsWith('.md') && !href.startsWith('http')) {
       a.addEventListener('click', e => {
         e.preventDefault();
-        loadPage(currentFile.replace(/\/[^/]+$/, '/') + href);
+        const baseDir = currentFile.replace(/\/[^/]+$/, '/');
+        loadPage(normalizeDocPath(baseDir + href));
       });
     }
   });

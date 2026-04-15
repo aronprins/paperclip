@@ -1,0 +1,66 @@
+{
+  "sections": [
+    {
+      "title": "Welcome",
+      "pages": [
+        { "title": "What is Paperclip?", "file": "../user-guides/guides/what-is-paperclip.md" },
+        { "title": "Key Concepts",       "file": "../user-guides/guides/key-concepts.md" },
+        { "title": "Glossary",           "file": "../user-guides/guides/glossary.md" }
+      ]
+    },
+    {
+      "title": "Get Started",
+      "pages": [
+        { "title": "Installation",              "file": "../user-guides/guides/installation.md" },
+        { "title": "Create Your First Company", "file": "../user-guides/guides/your-first-company.md" },
+        { "title": "Hire Your First Agent",     "file": "../user-guides/guides/your-first-agent.md" },
+        { "title": "Watching Agents Work",      "file": "../user-guides/guides/watching-agents-work.md" }
+      ]
+    },
+    {
+      "title": "Running Your Company",
+      "pages": [
+        { "title": "The Dashboard",   "file": "../user-guides/guides/dashboard.md" },
+        { "title": "Managing Tasks",  "file": "../user-guides/guides/managing-tasks.md" },
+        { "title": "Approvals",       "file": "../user-guides/guides/approvals.md" },
+        { "title": "Costs & Budgets", "file": "../user-guides/guides/costs-and-budgets.md" },
+        { "title": "Activity Log",    "file": "../user-guides/guides/activity-log.md" }
+      ]
+    },
+    {
+      "title": "Building Your Org",
+      "pages": [
+        { "title": "Org Structure", "file": "../user-guides/guides/org-structure.md" },
+        { "title": "Delegation",    "file": "../user-guides/guides/delegation.md" },
+        { "title": "Adapters",      "file": "../user-guides/guides/agent-adapters.md" }
+      ]
+    },
+    {
+      "title": "Advanced",
+      "pages": [
+        { "title": "Execution Workspaces",  "file": "../user-guides/guides/execution-workspaces.md" },
+        { "title": "Heartbeats & Routines", "file": "../user-guides/guides/heartbeats-and-routines.md" },
+        { "title": "Skills",                "file": "../user-guides/guides/skills.md" },
+        { "title": "Export & Import",       "file": "../user-guides/guides/export-import.md" },
+        { "title": "Terminal Setup",        "file": "../user-guides/guides/terminal-setup.md" }
+      ]
+    },
+    {
+      "title": "API Reference",
+      "pages": [
+        { "title": "Overview",         "file": "../api/overview.md" },
+        { "title": "Authentication",   "file": "../api/authentication.md" },
+        { "title": "Companies",        "file": "../api/companies.md" },
+        { "title": "Agents",           "file": "../api/agents.md" },
+        { "title": "Issues",           "file": "../api/issues.md" },
+        { "title": "Approvals",        "file": "../api/approvals.md" },
+        { "title": "Goals & Projects", "file": "../api/goals-and-projects.md" },
+        { "title": "Costs",            "file": "../api/costs.md" },
+        { "title": "Secrets",          "file": "../api/secrets.md" },
+        { "title": "Activity",         "file": "../api/activity.md" },
+        { "title": "Dashboard",        "file": "../api/dashboard.md" },
+        { "title": "Routines",         "file": "../api/routines.md" }
+      ]
+    }
+  ]
+}

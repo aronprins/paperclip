@@ -264,7 +264,7 @@ Verify it exits cleanly. If it errors, fix the script and re-run. Do NOT use
 
 ## PART 2 — Add dark/light mode to the guide viewer
 
-Edit `/Users/aronprins/Development/paperclip/user-guides/index.html`.
+Edit `docs/docs-website/index.html`.
 
 ### Theme toggle button
 
@@ -331,17 +331,17 @@ Moon (show when in light mode — click to switch to dark):
 
 Create these directories (they can be empty — screenshots will be written here):
 ```
-user-guides/screenshots/light/dashboard/
-user-guides/screenshots/light/agents/
-user-guides/screenshots/light/tasks/
-user-guides/screenshots/light/approvals/
-user-guides/screenshots/light/costs/
-user-guides/screenshots/light/activity/
-user-guides/screenshots/light/org/
-user-guides/screenshots/light/company/
-user-guides/screenshots/light/skills/
-user-guides/screenshots/light/export-import/
-user-guides/screenshots/dark/   (mirror of the above)
+docs/user-guides/screenshots/light/dashboard/
+docs/user-guides/screenshots/light/agents/
+docs/user-guides/screenshots/light/tasks/
+docs/user-guides/screenshots/light/approvals/
+docs/user-guides/screenshots/light/costs/
+docs/user-guides/screenshots/light/activity/
+docs/user-guides/screenshots/light/org/
+docs/user-guides/screenshots/light/company/
+docs/user-guides/screenshots/light/skills/
+docs/user-guides/screenshots/light/export-import/
+docs/user-guides/screenshots/dark/   (mirror of the above)
 ```
 
 ### 3b — Explore the app first
@@ -359,7 +359,7 @@ For each screenshot:
 2. Wait for the page to settle (no spinners)
 3. If a specific panel or modal must be open, interact to open it first
 4. Take screenshot
-5. Save to `user-guides/screenshots/light/<category>/<filename>`
+5. Save to `docs/user-guides/screenshots/light/<category>/<filename>`
 
 **Screenshot list:**
 
@@ -563,11 +563,11 @@ If the app has a built-in dark mode toggle, enable it. If not, use dev-browser
 to inject `document.documentElement.classList.add('dark')` or set the media
 query emulation to `prefers-color-scheme: dark` before each screenshot.
 
-Repeat every screenshot from 3c, saving to `user-guides/screenshots/dark/<category>/<filename>`.
+Repeat every screenshot from 3c, saving to `docs/user-guides/screenshots/dark/<category>/<filename>`.
 
 ### 3e — Wire screenshots into the viewer
 
-Edit `user-guides/index.html`:
+Edit `docs/docs-website/index.html`:
 
 1. In `postProcessImages()`, before attaching the error handler, rewrite each
    `img.src` to remap `../images/<category>/<file>` paths:
@@ -578,7 +578,7 @@ function resolveScreenshotSrc(src) {
   const match = src.match(/images\/([^/]+\/[^/]+\.png)$/);
   if (!match) return src;
   const theme = document.documentElement.dataset.theme || 'light';
-  return `screenshots/${theme}/${match[1]}`;
+  return `../user-guides/screenshots/${theme}/${match[1]}`;
 }
 ```
 

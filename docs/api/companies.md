@@ -1,9 +1,8 @@
----
-title: Companies
-summary: Company CRUD endpoints
----
+# Companies
 
 Manage companies within your Paperclip instance.
+
+---
 
 ## List Companies
 

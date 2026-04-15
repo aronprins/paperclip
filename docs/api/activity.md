@@ -1,9 +1,8 @@
----
-title: Activity
-summary: Activity log queries
----
+# Activity
 
 Query the audit trail of all mutations across the company.
+
+---
 
 ## List Activity
 

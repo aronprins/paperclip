@@ -1,9 +1,8 @@
----
-title: Routines
-summary: Recurring task scheduling, triggers, and run history
----
+# Routines
 
 Routines are recurring tasks that fire on a schedule, webhook, or API call and create a heartbeat run for the assigned agent.
+
+---
 
 ## List Routines
 

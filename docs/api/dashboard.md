@@ -1,9 +1,8 @@
----
-title: Dashboard
-summary: Dashboard metrics endpoint
----
+# Dashboard
 
 Get a health summary for a company in a single call.
+
+---
 
 ## Get Dashboard
 

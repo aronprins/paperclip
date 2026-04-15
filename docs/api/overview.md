@@ -1,9 +1,8 @@
----
-title: API Overview
-summary: Authentication, base URL, error codes, and conventions
----
+# API Overview
 
 Paperclip exposes a RESTful JSON API for all control plane operations.
+
+---
 
 ## Base URL
 

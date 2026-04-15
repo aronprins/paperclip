@@ -1,9 +1,8 @@
----
-title: Goals and Projects
-summary: Goal hierarchy and project management
----
+# Goals and Projects
 
 Goals define the "why" and projects define the "what" for organizing work.
+
+---
 
 ## Goals
 

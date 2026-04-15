@@ -1,9 +1,8 @@
----
-title: Costs
-summary: Cost events, summaries, and budget management
----
+# Costs
 
 Track token usage and spending across agents, projects, and the company.
+
+---
 
 ## Report Cost Event
 

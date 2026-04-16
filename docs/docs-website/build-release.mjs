@@ -16,8 +16,8 @@ function printUsage() {
 
 Options:
   --base-path <path>  Public URL base path for the uploaded docs bundle.
-                      Examples: auto, /, /docs/, /docs-website/
-                      Default: auto
+                      Examples: /, /docs/, /random/paperclip-docs/, auto
+                      Default: auto (explicit paths are recommended for deployment)
   --out-dir <path>    Output directory for the release bundle.
                       Default: docs/docs-website/release
   --help              Show this help text.`);
@@ -125,6 +125,7 @@ const APP_SHELL_URL = new URL('index.html', APP_BASE_URL);`;
 let APP_BASE_PATH = "/";
 let APP_BASE_URL = new URL("/", window.location.origin);
 let APP_SHELL_URL = new URL("index.html", APP_BASE_URL);
+let PRELOADED_NAV_DATA = null;
 
 function applyAppBasePath(basePath) {
   APP_BASE_PATH = !basePath || basePath === "auto" ? "/" : (basePath.endsWith("/") ? basePath : \`\${basePath}/\`);
@@ -132,9 +133,56 @@ function applyAppBasePath(basePath) {
   APP_SHELL_URL = new URL("index.html", APP_BASE_URL);
 }
 
+function isNavPayload(value) {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    Array.isArray(value.sections) &&
+    value.sections.every((section) =>
+      section &&
+      typeof section === "object" &&
+      typeof section.title === "string" &&
+      Array.isArray(section.pages) &&
+      section.pages.every((page) =>
+        page &&
+        typeof page === "object" &&
+        typeof page.title === "string" &&
+        typeof page.file === "string"
+      )
+    )
+  );
+}
+
+async function fetchNavForBasePath(basePath) {
+  const normalizedBasePath = !basePath || basePath === "auto"
+    ? "/"
+    : (basePath.endsWith("/") ? basePath : \`\${basePath}/\`);
+  const baseUrl = new URL(\`\${normalizedBasePath.replace(/\\/$/, "")}/\`, window.location.origin);
+  const response = await fetch(new URL("nav.json", baseUrl), {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) return null;
+
+  const text = await response.text();
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!isNavPayload(parsed)) return null;
+  return parsed;
+}
+
 async function detectAppBasePath() {
   if (RELEASE_BASE_PATH !== "auto") {
     applyAppBasePath(RELEASE_BASE_PATH);
+    try {
+      PRELOADED_NAV_DATA = await fetchNavForBasePath(RELEASE_BASE_PATH);
+    } catch {
+      PRELOADED_NAV_DATA = null;
+    }
     return;
   }
 
@@ -149,14 +197,14 @@ async function detectAppBasePath() {
 
   for (const candidate of candidates) {
     try {
-      const candidateBaseUrl = new URL(\`\${candidate.replace(/\\/$/, "")}/\`, window.location.origin);
-      const response = await fetch(new URL("nav.json", candidateBaseUrl), { cache: "no-store" });
-      if (response.ok) {
+      const navData = await fetchNavForBasePath(candidate);
+      if (navData) {
         applyAppBasePath(candidate);
+        PRELOADED_NAV_DATA = navData;
         return;
       }
     } catch {
-      // Keep probing parent paths until nav.json is found.
+      // Keep probing parent paths until a valid nav.json is found.
     }
   }
 
@@ -174,12 +222,42 @@ async function detectAppBasePath() {
   if (!output.includes("await detectAppBasePath();")) {
     throw new Error("Could not wire base-path detection into init().");
   }
+  output = output.replace(
+    `  try {
+    const res = await fetch(resolveContentUrl('nav.json'));
+    if (!res.ok) throw new Error(\`nav.json \${res.status}\`);
+    navData = await res.json();
+  } catch (e) {`,
+    `  try {
+    if (PRELOADED_NAV_DATA) {
+      navData = PRELOADED_NAV_DATA;
+    } else {
+      const res = await fetch(resolveContentUrl("nav.json"), {
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error(\`nav.json \${res.status}\`);
+      const text = await res.text();
+      try {
+        navData = JSON.parse(text);
+      } catch {
+        throw new Error("nav.json did not return valid JSON. The server is likely rewriting missing JSON requests to index.html.");
+      }
+    }
+    if (!isNavPayload(navData)) {
+      throw new Error("nav.json did not match the expected Paperclip docs schema.");
+    }
+  } catch (e) {`,
+  );
   output = output.replace("../user-guides/screenshots/", "user-guides/screenshots/");
   output = output.replace(
     "Could not load nav.json. Check docs-website hosting and rewrite configuration.",
-    "Could not load nav.json. Check that the release bundle was uploaded intact and the rewrite rules are enabled.",
+    "Could not load nav.json. Check that the release bundle was uploaded intact, the base path is correct, and only extensionless routes rewrite to index.html.",
   );
   return output;
+}
+
+function getDeploymentBasePath(basePath) {
+  return basePath === "auto" ? "/paperclip-docs/" : basePath;
 }
 
 function collectMarkdownLinks(markdown) {
@@ -272,6 +350,57 @@ RewriteRule ^ index.html [L]
 `;
 }
 
+function buildNginxConfig(basePath) {
+  const deploymentBasePath = getDeploymentBasePath(basePath);
+  const placeholderComment = basePath === "auto"
+    ? "# Replace /paperclip-docs/ with the public mount path for this bundle before using this snippet.\n"
+    : "";
+  return `${placeholderComment}# Paperclip docs static SPA
+# Real files must 404 if missing. Only extensionless routes should fall back to index.html.
+location ~ ^${deploymentBasePath}.*\\.[A-Za-z0-9]+$ {
+    try_files $uri =404;
+}
+
+location ${deploymentBasePath} {
+    try_files $uri $uri/ ${deploymentBasePath}index.html;
+}
+`;
+}
+
+function buildDeployGuide(basePath) {
+  const deploymentBasePath = getDeploymentBasePath(basePath);
+  const basePathGuidance = basePath === "auto"
+    ? `This bundle was built with \`--base-path auto\`.
+
+That mode is a fallback. For production subdirectory hosting, rebuild with an explicit path, for example:
+
+\`\`\`sh
+node docs/docs-website/build-release.mjs --base-path ${deploymentBasePath}
+\`\`\``
+    : `This bundle was built for the public base path \`${basePath}\`.`;
+
+  return `# Paperclip Docs Release Deployment
+
+${basePathGuidance}
+
+## Required server behavior
+
+- Serve the bundle root at \`${deploymentBasePath}\`
+- Rewrite only extensionless routes under that path to \`${deploymentBasePath}index.html\`
+- Let missing files with extensions such as \`.json\`, \`.md\`, images, fonts, and JS return \`404\`
+
+If the server rewrites missing \`.json\` or \`.md\` requests to \`index.html\`, the docs app can mis-detect its base path and fail to load.
+
+## Apache
+
+Use the generated \`.htaccess\`.
+
+## Nginx
+
+Use the generated \`nginx.conf.example\` as a starting point.
+`;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceNav = JSON.parse(await fs.readFile(sourceNavPath, "utf8"));
@@ -286,6 +415,8 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "index.html"), releaseIndex);
   await fs.writeFile(path.join(options.outDir, "nav.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
+  await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
+  await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
 
   const sortedMarkdownFiles = [...markdownFiles].sort((left, right) => left.localeCompare(right));
   for (const markdownPath of sortedMarkdownFiles) {
@@ -316,6 +447,9 @@ async function main() {
   console.log(`Copied ${sortedMarkdownFiles.length} markdown files.`);
   if (await pathExists(screenshotsSourceDir)) {
     console.log("Copied screenshot assets.");
+  }
+  if (options.basePath === "auto") {
+    console.warn("Warning: --base-path auto is less robust for deployed subdirectory hosting. Prefer an explicit path such as /random/paperclip-docs/.");
   }
   if (warnings.length > 0) {
     console.warn(`Completed with ${warnings.length} warning(s):`);

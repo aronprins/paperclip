@@ -67,6 +67,7 @@ describe("heartbeatsApi live run sanitization", () => {
   });
 
   it("returns null for malformed active run payloads", async () => {
+    mockApi.get.mockResolvedValueOnce(null);
     mockApi.get.mockResolvedValueOnce({ id: null, status: "running" });
     mockApi.get.mockResolvedValueOnce({
       id: "run-3",
@@ -82,6 +83,7 @@ describe("heartbeatsApi live run sanitization", () => {
       issueId: "issue-3",
     });
 
+    await expect(heartbeatsApi.activeRunForIssue("issue-null")).resolves.toBeNull();
     await expect(heartbeatsApi.activeRunForIssue("issue-1")).resolves.toBeNull();
     await expect(heartbeatsApi.activeRunForIssue("issue-3")).resolves.toEqual(
       expect.objectContaining({ id: "run-3", agentId: "agent-3" }),

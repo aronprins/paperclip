@@ -53,9 +53,13 @@ function sanitizeLiveRuns(value: unknown): LiveRunForIssue[] {
   return value.filter(isLiveRunRecord);
 }
 
+function isActiveRunRecord(value: unknown): value is ActiveRunForIssue {
+  return isLiveRunRecord(value);
+}
+
 function sanitizeActiveRun(value: unknown): ActiveRunForIssue | null {
   if (value === null) return null;
-  return isLiveRunRecord(value) ? value : null;
+  return isActiveRunRecord(value) ? value : null;
 }
 
 export const heartbeatsApi = {

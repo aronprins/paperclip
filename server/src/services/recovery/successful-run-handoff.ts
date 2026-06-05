@@ -23,6 +23,16 @@ export const SUCCESSFUL_RUN_HANDOFF_OPTIONS = [
   "delegate_or_continue_from_checkpoint",
 ] as const;
 
+// Adapters whose execution happens out-of-band: the server-side dispatch run
+// only *notifies* an external worker (e.g. `http` posting to a relay/webhook),
+// which then drives the issue to a disposition asynchronously via the API. For
+// these, a fire-and-forget dispatch run that reports "succeeded" the instant the
+// webhook is accepted is NOT evidence that a disposition is missing — the worker
+// just hasn't reported back yet. The stranded/missing-disposition recovery
+// heuristics must therefore exempt these adapters; the externally-driven
+// reconciler in service.ts owns their (long, grace-windowed) escalation instead.
+export const EXTERNALLY_DRIVEN_ADAPTERS = new Set(["http"]);
+
 const PRODUCTIVE_SUCCESS_LIVENESS_STATES = new Set<RunLivenessState>([
   "advanced",
   "completed",
@@ -47,7 +57,7 @@ type IssueRow = Pick<
   typeof issues.$inferSelect,
   "id" | "companyId" | "identifier" | "title" | "status" | "assigneeAgentId" | "assigneeUserId" | "executionState"
 >;
-type AgentRow = Pick<typeof agents.$inferSelect, "id" | "companyId" | "status">;
+type AgentRow = Pick<typeof agents.$inferSelect, "id" | "companyId" | "status" | "adapterType">;
 type NoticeIssue = Pick<typeof issues.$inferSelect, "id" | "identifier" | "title" | "status">;
 type NoticeRun = Pick<typeof heartbeatRuns.$inferSelect, "id" | "status">;
 type NoticeAgent = Pick<typeof agents.$inferSelect, "id" | "name">;
@@ -357,6 +367,12 @@ export function decideSuccessfulRunHandoff(input: {
   if (!agent) return { kind: "skip", reason: "agent not found" };
   if (issue.companyId !== run.companyId || agent.companyId !== run.companyId) {
     return { kind: "skip", reason: "company scope mismatch" };
+  }
+  if (EXTERNALLY_DRIVEN_ADAPTERS.has(agent.adapterType)) {
+    // The dispatch run only notified an out-of-band worker; its "succeeded"
+    // status is not evidence of a missing disposition. The externally-driven
+    // reconciler (service.ts) owns escalation for these adapters.
+    return { kind: "skip", reason: "externally-driven adapter drives disposition out-of-band" };
   }
   if (issue.assigneeAgentId !== run.agentId) {
     return { kind: "skip", reason: "issue is no longer assigned to the source run agent" };

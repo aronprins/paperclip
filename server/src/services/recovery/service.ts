@@ -39,7 +39,6 @@ import { issueService } from "../issues.js";
 import { getRunLogStore } from "../run-log-store.js";
 import {
   DEFAULT_MAX_SUCCESSFUL_RUN_HANDOFF_ATTEMPTS,
-  EXTERNALLY_DRIVEN_ADAPTERS,
   FINISH_SUCCESSFUL_RUN_HANDOFF_REASON,
   SUCCESSFUL_RUN_MISSING_STATE_REASON,
   buildSuccessfulRunHandoffExhaustedNotice,
@@ -81,17 +80,6 @@ const SESSIONED_LOCAL_ADAPTERS = new Set([
   "pi_local",
 ]);
 
-// `EXTERNALLY_DRIVEN_ADAPTERS` is shared with the successful-run-handoff path
-// (see ./successful-run-handoff.ts) so both reconcilers exempt out-of-band
-// adapters from the same single source of truth. A fire-and-forget dispatch run
-// that reports "succeeded" the instant its webhook is accepted is NOT evidence
-// of a stranded/abandoned handoff, so the synchronous-execution stranded
-// heuristics must not flip the issue to `blocked` on that basis. The issue still
-// surfaces for intervention, but only after a generous grace window with no
-// progress (worker down, relay never drained, etc.) — see
-// reconcileExternallyDrivenAssignedIssue.
-const EXTERNALLY_DRIVEN_STRANDED_GRACE_MS = 30 * 60 * 1000;
-
 type RecoveryWakeupOptions = {
   source?: "timer" | "assignment" | "on_demand" | "automation";
   triggerDetail?: "manual" | "ping" | "callback" | "system";
@@ -110,7 +98,7 @@ type RecoveryWakeup = (
 
 type LatestIssueRun = Pick<
   typeof heartbeatRuns.$inferSelect,
-  "id" | "agentId" | "status" | "error" | "errorCode" | "contextSnapshot" | "livenessState" | "finishedAt"
+  "id" | "agentId" | "status" | "error" | "errorCode" | "contextSnapshot" | "livenessState"
 > | null;
 type SuccessfulLatestIssueRun = NonNullable<LatestIssueRun> & { status: "succeeded" };
 
@@ -485,7 +473,6 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
         errorCode: heartbeatRuns.errorCode,
         contextSnapshot: heartbeatRuns.contextSnapshot,
         livenessState: heartbeatRuns.livenessState,
-        finishedAt: heartbeatRuns.finishedAt,
       })
       .from(heartbeatRuns)
       .where(
@@ -2447,46 +2434,6 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
     return updated;
   }
 
-  // Reconcile an assigned issue whose owner executes out-of-band (see
-  // EXTERNALLY_DRIVEN_ADAPTERS). The synchronous-execution stranded heuristics
-  // in reconcileStrandedAssignedIssues misread a fire-and-forget dispatch run
-  // as an abandoned handoff and block the issue within seconds; this path
-  // instead keeps a wake queued for the external worker and only escalates to
-  // `blocked` after a long stall.
-  async function reconcileExternallyDrivenAssignedIssue(input: {
-    issue: typeof issues.$inferSelect;
-    agentId: string;
-    latestRun: LatestIssueRun;
-  }): Promise<"dispatched" | "escalated" | "skipped"> {
-    const { issue, agentId, latestRun } = input;
-
-    // Nothing dispatched yet: ensure a wake is queued for the external worker,
-    // then wait for it to pick the issue up.
-    if (!latestRun) {
-      if (await hasQueuedIssueWake(issue.companyId, issue.id)) return "skipped";
-      if (await isInvocationBudgetBlocked(issue, agentId)) return "skipped";
-      return (await enqueueInitialAssignedTodoDispatch(issue, agentId)) ? "dispatched" : "skipped";
-    }
-
-    // A dispatch run exists. Its terminal status only reflects "notification
-    // delivered", not "work abandoned" — the worker drives the issue via the
-    // API on its own clock. Only surface (block) once the issue has made no
-    // progress for a long time.
-    const lastProgressAt = latestRun.finishedAt ?? issue.startedAt ?? issue.updatedAt ?? null;
-    const lapsedMs = lastProgressAt ? Date.now() - new Date(lastProgressAt).getTime() : 0;
-    if (lapsedMs < EXTERNALLY_DRIVEN_STRANDED_GRACE_MS) return "skipped";
-
-    const updated = await escalateStrandedAssignedIssue({
-      issue,
-      previousStatus: issue.status as "todo" | "in_progress",
-      latestRun,
-      comment:
-        "Paperclip notified this issue's external worker, but it has shown no progress for an extended " +
-        "period. Moving it to `blocked` so it is visible for intervention.",
-    });
-    return updated ? "escalated" : "skipped";
-  }
-
   async function reconcileStrandedAssignedIssues() {
     const candidates = await db
       .select()
@@ -2536,23 +2483,6 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
       }
 
       const latestRun = await getLatestIssueRun(issue.companyId, issue.id);
-
-      // Out-of-band adapters (e.g. http) are driven by an external worker, not
-      // by the dispatch run itself. Route them through a grace-windowed
-      // reconciler instead of the synchronous-execution stranded heuristics
-      // below, which would otherwise block the issue the moment the
-      // fire-and-forget dispatch run reports success.
-      if (EXTERNALLY_DRIVEN_ADAPTERS.has(agent.adapterType)) {
-        const outcome = await reconcileExternallyDrivenAssignedIssue({ issue, agentId, latestRun });
-        if (outcome === "dispatched" || outcome === "escalated") {
-          result[outcome === "dispatched" ? "assignmentDispatched" : "escalated"] += 1;
-          result.issueIds.push(issue.id);
-        } else {
-          result.skipped += 1;
-        }
-        continue;
-      }
-
       if (isStrandedIssueRecoveryIssue(issue) && isUnsuccessfulTerminalIssueRun(latestRun)) {
         const updated = await escalateStrandedRecoveryIssueInPlace({
           issue,

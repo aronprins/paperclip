@@ -137,16 +137,6 @@ describe("successful run handoff decision", () => {
     });
   });
 
-  it("does not queue for externally-driven adapters whose worker drives the disposition out-of-band", () => {
-    // A fire-and-forget `http` dispatch run reports "succeeded" the instant its
-    // webhook is accepted; that is not evidence of a missing disposition, so the
-    // handoff must skip before the productive-progress checks fire.
-    expect(decide({ agent: { ...agent, adapterType: "http" } as any })).toEqual({
-      kind: "skip",
-      reason: "externally-driven adapter drives disposition out-of-band",
-    });
-  });
-
   it("does not treat adapter or runtime failures as missing-disposition handoffs", () => {
     expect(decide({ run: { ...run, status: "failed", errorCode: "adapter_failed" } as any })).toEqual({
       kind: "skip",
